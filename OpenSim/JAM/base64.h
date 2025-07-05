@@ -1,3 +1,6 @@
+#ifndef OPENSIM_BASE64_H_
+#define OPENSIM_BASE64_H_
+
 /*
 base64.cpp and base64.h
 
@@ -25,10 +28,6 @@ René Nyffenegger rene.nyffenegger@adp-gmbh.ch
 
 https://github.com/ReneNyffenegger/cpp-base64
 */
-
-#ifndef OPENSIM_BASE64_H_
-#define OPENSIM_BASE64_H_
-
 
 #include <string>
 
