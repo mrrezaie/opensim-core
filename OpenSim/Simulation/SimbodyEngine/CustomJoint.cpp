@@ -143,9 +143,9 @@ void CustomJoint::extendScale(const SimTK::State& s, const ScaleSet& scaleSet)
     const Frame& scale_factor_frame = getParentFrame().findBaseFrame();
 
     if (spat_trans.get_translation1().getCoordinateNames().size() > 0) {
-        Vec3 axis = spat_trans.get_translation1().getAxis();
+        SimTK::Vec3 axis = spat_trans.get_translation1().getAxis();
         std::string translation_coord_name = spat_trans.get_translation1().get_coordinates(0);
-        Vec3 axis_scale_frame = getParentFrame().expressVectorInAnotherFrame(s, axis, scale_factor_frame);
+        SimTK::Vec3 axis_scale_frame = getParentFrame().expressVectorInAnotherFrame(s, axis, scale_factor_frame);
         axis_scale_frame = axis_scale_frame / axis_scale_frame.sum();
         double scale = dot(axis_scale_frame, scaleFactors);
 
@@ -160,9 +160,9 @@ void CustomJoint::extendScale(const SimTK::State& s, const ScaleSet& scaleSet)
     }
 
     if (spat_trans.get_translation2().getCoordinateNames().size() > 0) {
-        Vec3 axis = spat_trans.get_translation2().getAxis();
+        SimTK::Vec3 axis = spat_trans.get_translation2().getAxis();
         std::string translation_coord_name = spat_trans.get_translation2().get_coordinates(0);
-        Vec3 axis_scale_frame = getParentFrame().expressVectorInAnotherFrame(s, axis, scale_factor_frame);
+        SimTK::Vec3 axis_scale_frame = getParentFrame().expressVectorInAnotherFrame(s, axis, scale_factor_frame);
         axis_scale_frame = axis_scale_frame / axis_scale_frame.sum();
         double scale = dot(axis_scale_frame, scaleFactors);
 
@@ -177,9 +177,9 @@ void CustomJoint::extendScale(const SimTK::State& s, const ScaleSet& scaleSet)
     }
 
     if (spat_trans.get_translation3().getCoordinateNames().size() > 0) {
-        Vec3 axis = spat_trans.get_translation3().getAxis();
+        SimTK::Vec3 axis = spat_trans.get_translation3().getAxis();
         std::string translation_coord_name = spat_trans.get_translation3().get_coordinates(0);
-        Vec3 axis_scale_frame = getParentFrame().expressVectorInAnotherFrame(s, axis, scale_factor_frame);
+        SimTK::Vec3 axis_scale_frame = getParentFrame().expressVectorInAnotherFrame(s, axis, scale_factor_frame);
         axis_scale_frame = axis_scale_frame / axis_scale_frame.sum();
         double scale = dot(axis_scale_frame, scaleFactors);
 
