@@ -237,57 +237,29 @@ TEST_CASE("testForwardToolVersusManager") {
     Model model = ModelFactory::createNLinkPendulum(3);
     SimTK::State state = model.initSystem();
 
-    SECTION("Variable time-stepping") {
-        Manager manager(model);
-        manager.setIntegratorMinimumStepSize(1e-8);
-        manager.setIntegratorMaximumStepSize(10.0);
-        manager.setIntegratorAccuracy(1e-4);
-        manager.initialize(state);
-        manager.integrate(1.0);
-        manager.getStateStorage().print(
-                "testForwardToolVersusManager_manager_states.sto");
+    Manager manager(model);
+    manager.setIntegratorMinimumStepSize(1e-8);
+    manager.setIntegratorMaximumStepSize(10.0);
+    manager.setIntegratorAccuracy(1e-4);
+    manager.initialize(state);
+    manager.integrate(1.0);
+    manager.getStateStorage().print(
+            "testForwardToolVersusManager_manager_states.sto");
 
-        ForwardTool forward;
-        forward.setModel(model);
-        forward.setName("testForwardToolVersusManager_forward");
-        forward.setMinDT(1e-8);
-        forward.setMaxDT(10.0);
-        forward.setErrorTolerance(1e-4);
-        forward.run();
+    ForwardTool forward;
+    forward.setModel(model);
+    forward.setName("testForwardToolVersusManager_forward");
+    forward.setMinDT(1e-8);
+    forward.setMaxDT(10.0);
+    forward.setErrorTolerance(1e-4);
+    forward.run();
 
-        Storage managerStates("testForwardToolVersusManager_manager_states.sto");
-        Storage forwardStates("testForwardToolVersusManager_forward_states.sto");
-        CHECK(managerStates.getSize() == forwardStates.getSize());
+    Storage managerStates("testForwardToolVersusManager_manager_states.sto");
+    Storage forwardStates("testForwardToolVersusManager_forward_states.sto");
+    CHECK(managerStates.getSize() == forwardStates.getSize());
 
-        std::vector<double> rms_tols(state.getNY(), SimTK::SqrtEps);
-        CHECK_STORAGE_AGAINST_STANDARD(forwardStates, managerStates, rms_tols,
-            __FILE__, __LINE__, "testForwardToolVersusManager failed");
-    }
+    std::vector<double> rms_tols(state.getNY(), SimTK::SqrtEps);
+    CHECK_STORAGE_AGAINST_STANDARD(forwardStates, managerStates, rms_tols,
+        __FILE__, __LINE__, "testForwardToolVersusManager failed");
 
-    SECTION("Specified time-stepping") {
-        state.updQ() = SimTK::Test::randVector(state.getNQ());
-        state.updU() = SimTK::Test::randVector(state.getNU());
-
-        Manager manager(model);
-        manager.initialize(state);
-        manager.integrate(1.0);
-        manager.getStateStorage().print(
-                "testForwardToolVersusManager_manager_states.sto");
-
-        ForwardTool forward;
-        forward.setModel(model);
-        forward.setName("testForwardToolVersusManager_forward");
-        forward.setStatesFileName(
-                "testForwardToolVersusManager_manager_states.sto");
-        forward.setUseSpecifiedDt(true);
-        forward.run();
-
-        Storage managerStates("testForwardToolVersusManager_manager_states.sto");
-        Storage forwardStates("testForwardToolVersusManager_forward_states.sto");
-        CHECK(managerStates.getSize() == forwardStates.getSize());    
-        std::vector<double> rms_tols(state.getNY(), 
-                10*state.getNY()*SimTK::SqrtEps);
-        CHECK_STORAGE_AGAINST_STANDARD(forwardStates, managerStates, rms_tols,
-            __FILE__, __LINE__, "testForwardToolVersusManager failed");
-    }
 }

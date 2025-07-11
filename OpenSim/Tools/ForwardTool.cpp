@@ -55,9 +55,7 @@ ForwardTool::~ForwardTool()
  */
 ForwardTool::ForwardTool() :
     AbstractTool(),
-    _statesFileName(_statesFileNameProp.getValueStr()),
-    _useSpecifiedDt(_useSpecifiedDtProp.getValueBool())
-{
+    _statesFileName(_statesFileNameProp.getValueStr()){
     setNull();
 }
 //_____________________________________________________________________________
@@ -71,9 +69,7 @@ ForwardTool::ForwardTool() :
  */
 ForwardTool::ForwardTool(const string &aFileName,bool aUpdateFromXMLNode,bool aLoadModel) :
     AbstractTool(aFileName, false),
-    _statesFileName(_statesFileNameProp.getValueStr()),
-    _useSpecifiedDt(_useSpecifiedDtProp.getValueBool())
-{
+    _statesFileName(_statesFileNameProp.getValueStr()){
     setNull();
 
     if(aUpdateFromXMLNode) updateFromXMLDocument();
@@ -124,9 +120,7 @@ ForwardTool::ForwardTool(const string &aFileName,bool aUpdateFromXMLNode,bool aL
 ForwardTool::
 ForwardTool(const ForwardTool &aTool) :
     AbstractTool(aTool),
-    _statesFileName(_statesFileNameProp.getValueStr()),
-    _useSpecifiedDt(_useSpecifiedDtProp.getValueBool())
-{
+    _statesFileName(_statesFileNameProp.getValueStr()){
     setNull();
     *this = aTool;
 }
@@ -141,15 +135,12 @@ void ForwardTool::setNull()
 
     // BASIC
     _statesFileName = "";
-    _useSpecifiedDt = false;
-    _dtArray = SimTK::Vector_<double>();
     _printResultFiles = true;
 
     _replaceForceSet = false;   // default should be false for Forward.
 
     // INTERNAL WORK VARIABLES
     _yStore = NULL;
-    _yOut = Storage();
 
     // Start parsing log as empty. 
     _parsingLog="";
@@ -176,20 +167,6 @@ void ForwardTool::setupProperties()
     _statesFileNameProp.setComment(comment);
     _statesFileNameProp.setName("states_file");
     _propertySet.append( &_statesFileNameProp );
-
-    comment = "Flag (true or false) indicating whether or not the integrator should "
-                 "use a particular time stepping.  If true, the time stepping is extracted "
-                 "from the initial states file.  In this situation, therefore, the initial "
-                 "states file must contain all the time steps in a simulation and be written out "
-                 "to high precision (usually 20 decimal places).  Setting this flag to true can "
-                 "be useful when reproducing a previous forward simulation with as little drift "
-                 "as possible.  If this flag is false, the integrator is left to determine its own "
-                 "time stepping.";
-    _useSpecifiedDtProp.setComment(comment);
-    _useSpecifiedDtProp.setName("use_specified_dt");
-    _propertySet.append( &_useSpecifiedDtProp );
-
-
 }
 
 //=============================================================================
@@ -211,7 +188,6 @@ operator=(const ForwardTool &aTool)
     // MEMBER VARIABLES
     // BASIC INPUT
     _statesFileName = aTool._statesFileName;
-    _useSpecifiedDt = aTool._useSpecifiedDt;
 
     return(*this);
 }
@@ -271,10 +247,7 @@ bool ForwardTool::run()
     manager.setIntegratorMaximumStepSize(_maxDT);
     manager.setIntegratorMinimumStepSize(_minDT);
     manager.setIntegratorAccuracy(_errorTolerance);
-
-
     // integ->setFineTolerance(_fineTolerance); No equivalent in SimTK
-    if(_useSpecifiedDt) InitializeSpecifiedTimeStepping(_yStore, manager);
 
     // get values for state variables in rawData then assign by name to model
     int numStateVariables = _model->getNumStateVariables();
@@ -302,39 +275,9 @@ bool ForwardTool::run()
         if (Logger::shouldLog(Logger::Level::Info)) {
             _model->printDetailedInfo(s, std::cout);
         }
-        _yOut = Storage();
         s.setTime(_ti);
         manager.initialize(s);
-        if (_useSpecifiedDt && _dtArray.size() > 0) {
-            for (int i = 0; i < _dtArray.size(); ++i) {
-                manager.setIntegratorFixedStepSize(_dtArray[i]);
-                manager.initialize(s);
-                s = manager.integrate(s.getTime() + _dtArray[i]);
-                Storage sto = manager.getStateStorage();
-                for (int j = 0; j < sto.getSize(); ++j) {
-                SimTK::Vector stateValues(s.getNY(), 0.0);
-                    double time;
-                    sto.getData(j, s.getNY(), stateValues);
-                    sto.getTime(j, time);
-                    _yOut.append(time, stateValues, true);
-                }
-            }
-        } else {
-            manager.integrate(_tf);
-            Storage sto = manager.getStateStorage();
-            _yOut = sto;
-        }
-
-        Array<std::string> stateNames = _model->getStateVariableNames();
-        Array<std::string> columnLabels;
-        columnLabels.setSize(0);
-        columnLabels.append("time");
-        for (int i = 0; i < stateNames.getSize(); i++) {
-            columnLabels.append(stateNames[i]);
-        }
-        _yOut.setColumnLabels(columnLabels);
-        _yOut.setName("states");
-
+        manager.integrate(_tf);
     } catch(const std::exception& x) {
         log_error("ForwardTool::run() caught an exception: \n {}", x.what());
         completed = false;
@@ -373,9 +316,9 @@ void ForwardTool::printResultsInternal()
     AbstractTool::printResults(getName(),getResultsDir()); // this will create results directory if necessary
     if (_model) {
         _model->printControlStorage(getResultsDir() + "/" + getName() + "_controls.sto");
-        _yOut.print(getResultsDir() + "/" + getName() + "_states.sto");
+        getManager().getStateStorage().print(getResultsDir() + "/" + getName() + "_states.sto");
 
-        Storage statesDegrees(_yOut);
+        Storage statesDegrees(getManager().getStateStorage());
         _model->getSimbodyEngine().convertRadiansToDegrees(statesDegrees);
         statesDegrees.setWriteSIMMHeader(true);
         statesDegrees.print(getResultsDir() + "/" + getName() + "_states_degrees.mot");
@@ -414,7 +357,7 @@ int ForwardTool::determineInitialTimeFromStatesStorage(double &rTI)
     return(index);
 }
 
-void ForwardTool::loadStatesStorage (std::string& statesFileName, Storage*& rYStore) const {
+void ForwardTool::loadStatesStorage(std::string& statesFileName, Storage*& rYStore) const {
     // Initial states
     rYStore = NULL;
     if(_statesFileName!="") {
@@ -429,32 +372,6 @@ void ForwardTool::loadStatesStorage (std::string& statesFileName, Storage*& rYSt
             rYStore->getLastTime());
     }
 }
-
-//_____________________________________________________________________________
-/**
- * Setup time stepping so that the integrator follows a pre-specified series
- * of time steps.
- */
-void ForwardTool::InitializeSpecifiedTimeStepping(Storage *aYStore, Manager& aManager)
-{
-    // USE INITIAL STATES FILE FOR TIME STEPS
-
-    if(aYStore) {
-        log_info("Using dt specified from storage {}.", aYStore->getName());
-        Array<double> tArray(0.0,aYStore->getSize());
-        aYStore->getTimeColumn(tArray);
-        _dtArray.clear();
-        _dtArray.resize(aYStore->getSize() - 1);
-        for(int i = 0; i < aYStore->getSize() - 1; i++) {
-            _dtArray[i] = tArray[i+1] - tArray[i];
-        }
-    // NO AVAILABLE STATES FILE
-    } else {
-        log_warn("Ignoring 'use_specified_dt' property because no initial "
-                 "states file is specified.");
-    }
-}
-
 
 //=============================================================================
 // CUBIC STEP FUNCTION
