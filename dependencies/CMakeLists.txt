@@ -202,8 +202,6 @@ AddDependency(NAME       spdlog
                          -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
                          -DCMAKE_CXX_FLAGS:STRING=${SPDLOG_CXX_FLAGS})
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
-
 AddDependency(NAME hdf5
               DEFAULT ON
               GIT_URL https://github.com/HDFGroup/hdf5.git
