@@ -250,6 +250,9 @@ OSIMSIMULATION_API void RegisterTypes_osimSimulation()
     Object::registerType( ContactHalfSpace() );
     Object::registerType( ContactMesh() );
     Object::registerType( ContactSphere() );
+    Object::registerType( ContactCylinder() );
+    Object::registerType( ContactEllipsoid() );
+    Object::registerType( ContactTorus() );
     Object::registerType( CoordinateLimitForce() );
     Object::registerType( SmoothSphereHalfSpaceForce() );
     Object::registerType( ExponentialContactForce() );
