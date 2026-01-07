@@ -1,7 +1,5 @@
-#ifndef OPENSIM_PARSE_ARGUMENTS_H_
-#define OPENSIM_PARSE_ARGUMENTS_H_
 /* -------------------------------------------------------------------------- *
- *                        OpenSim:  parse_arguments.h                         *
+ *                          OpenSim:  COMAKSettings.cpp                       *
  * -------------------------------------------------------------------------- *
  * The OpenSim API is a toolkit for musculoskeletal modeling and simulation.  *
  * See http://opensim.stanford.edu and the NOTICE file for more information.  *
@@ -10,7 +8,7 @@
  * through the Warrior Web program.                                           *
  *                                                                            *
  * Copyright (c) 2005-2017 Stanford University and the Authors                *
- * Author(s): Chris Dembia                                                    *
+ * Author(s): Peter Loan                                                      *
  *                                                                            *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may    *
  * not use this file except in compliance with the License. You may obtain a  *
@@ -23,43 +21,42 @@
  * limitations under the License.                                             *
  * -------------------------------------------------------------------------- */
 
-#include <Vendors/docopt/docopt.h>
-#include <OpenSim/OpenSim.h>
-#include <OpenSim/Moco/osimMoco.h>
-#include <OpenSim/JAM/osimJAM.h>
 
-namespace OpenSim {
+//=============================================================================
+// INCLUDES
+//=============================================================================
+#include "COMAKSettings.h"
+#include "OpenSim/Common/Constant.h"
+//=============================================================================
+// STATICS
+//=============================================================================
 
-// This implementation was copied from docopt.cpp; the only difference is that
-// this function can throw exceptions (whereas `docopt::docopt()` is
-// `noexcept`).
-std::map<std::string, docopt::value>
-parse_arguments(std::string const& doc,
-            std::vector<std::string> const& argv,
-            bool help = true,
-            std::string const& version = {},
-            bool options_first = false)
+
+using namespace OpenSim;
+using namespace std;
+
+COMAKSecondaryCoordinate::COMAKSecondaryCoordinate()
 {
-    using namespace docopt;
-    try {
-        return docopt_parse(doc, argv, help, !version.empty(), options_first);
-    } catch (DocoptExitHelp const&) {
-        log_cout(doc);
-        std::exit(0);
-    } catch (DocoptExitVersion const&) {
-        log_cout(version);
-        std::exit(0);
-    } catch (DocoptLanguageError const& error) {
-        log_error("Docopt usage string could not be parsed.");
-        log_error(error.what());
-        std::exit(-1);
-    } catch (DocoptArgumentError const& error) {
-        log_error(error.what());
-        log_error("Use --help to get more information.");
-        std::exit(-1);
-    }
+    constructProperties();
 }
 
-} // namespace OpenSim
+void COMAKSecondaryCoordinate::constructProperties() 
+{
+    constructProperty_coordinate("");
+    constructProperty_max_change(0.05);
+}
 
-#endif // OPENSIM_PARSE_ARGUMENTS_H_
+COMAKCostFunctionParameter::COMAKCostFunctionParameter()
+{
+    constructProperties();
+}
+
+void COMAKCostFunctionParameter::constructProperties() 
+{
+    constructProperty_actuator("");
+    constructProperty_weight(Constant(1.0));
+    constructProperty_desired_activation(Constant(0.0));
+    constructProperty_activation_lower_bound(Constant(0.01));
+    constructProperty_activation_upper_bound(Constant(1.0));
+}
+

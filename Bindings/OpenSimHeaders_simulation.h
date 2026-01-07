@@ -27,6 +27,8 @@
 #include <OpenSim/Simulation/Model/ContactGeometry.h>
 #include <OpenSim/Simulation/Model/ContactHalfSpace.h>
 #include <OpenSim/Simulation/Model/ContactMesh.h>
+#include <OpenSim/Simulation/Model/Smith2018ContactMesh.h>
+#include <OpenSim/Simulation/Model/Smith2018ArticularContactForce.h>
 
 #include <OpenSim/Simulation/Model/ElasticFoundationForce.h>
 #include <OpenSim/Simulation/Model/HuntCrossleyForce.h>
