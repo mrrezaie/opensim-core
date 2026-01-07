@@ -984,7 +984,7 @@ void JointMechanicsTool::assembleStatesTrajectoryFromTransformsData(
                         double assembled_value =
                             hidden_joint.get_coordinates(j).getValue(state);
                         double value_error =
-                            abs(desired_value - assembled_value);
+                            fabs(desired_value - assembled_value);
                         if (value_error > max_error) {
                             max_error = value_error;
                             bad_i = i;

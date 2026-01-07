@@ -1458,7 +1458,7 @@ SimTK::Vector COMAKTool::equilibriateSecondaryCoordinates()
                     _secondary_coord_path[k]);
 
             double value = coord.getValue(state);
-            double delta = abs(value - prev_sec_coord_value(k));
+            double delta = fabs(value - prev_sec_coord_value(k));
             
             if (delta > max_coord_delta) {
                 max_coord_delta = delta;
