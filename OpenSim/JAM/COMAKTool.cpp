@@ -1758,19 +1758,19 @@ void COMAKTool::updateModelForces()
 void COMAKTool::computeMuscleVolumes() {
     double max_iso_stress = 350000.0; //Muscle Specific Tension
 
-    SimTK::Vector msl_volume(_model.getMuscles().getSize(), 0.0);
+    SimTK::Vector msl_volume(_model.getMuscles().getSize(), 1.0);
     
-    int i = 0;
-    for (const Muscle& msl : _model.getComponentList<Muscle>()) {
-        double l0 = msl.get_optimal_fiber_length();
-        double fmax = msl.get_max_isometric_force();
+    // int i = 0;
+    // for (const Muscle& msl : _model.getComponentList<Muscle>()) {
+    //     double l0 = msl.get_optimal_fiber_length();
+    //     double fmax = msl.get_max_isometric_force();
 
-        msl_volume[i] = (l0*fmax) / max_iso_stress;
-        i++;
-    }
+    //     msl_volume[i] = (l0*fmax) / max_iso_stress;
+    //     i++;
+    // }
     _muscle_volumes = msl_volume;
 
-    _normalized_muscle_volumes = msl_volume/=msl_volume.normInf();
+    _normalized_muscle_volumes = msl_volume; // msl_volume/=msl_volume.normInf();
 }
 
 void COMAKTool::printCOMAKascii() {
