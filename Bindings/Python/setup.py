@@ -40,7 +40,8 @@ setup(name='opensim',
       packages=['opensim'],
       # Copy the bin_files and geometry_files into the opensim package directory
       data_files=[
-            ('opensim', bin_files)
+            ('lib\site-packages\opensim', bin_files),
+            ('lib\site-packages\opensim\Geometry', geometry_files)
       ],
       # The last 3 entries are for if OPENSIM_PYTHON_STANDALONE is ON.
       # The asterisk after the extension is to handle version numbers on Linux.
