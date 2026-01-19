@@ -519,18 +519,18 @@ SimTK::State COMAKTool::initialize()
     }
 
     computeMuscleVolumes();
+    if (get_use_muscle_volume_weight()) { 
+        log_debug("Muscle Properties");
+        log_debug("{:<15} {:<15} {:<15}", "name ", "Fmax", "Volume");
+        i = 0;
+        for (const Muscle& msl : _model.getComponentList<Muscle>()) {
+            double l0 = msl.get_optimal_fiber_length();
+            double fmax = msl.get_max_isometric_force();
 
-    log_debug("Muscle Properties");
-    log_debug("{:<15} {:<15} {:<15}", "name ", "Fmax", "Volume");
-    i = 0;
-    for (const Muscle& msl : _model.getComponentList<Muscle>()) {
-        double l0 = msl.get_optimal_fiber_length();
-        double fmax = msl.get_max_isometric_force();
-
-        log_debug("{:<15} {:<15} {:<15}", msl.getName(), fmax, _muscle_volumes[i]);
-        i++;
+            log_debug("{:<15} {:<15} {:<15}", msl.getName(), fmax, _muscle_volumes[i]);
+            i++;
+        }
     }
-
 
     // Setup optimization parameters
     // parameters vector ordered
@@ -1762,6 +1762,7 @@ void COMAKTool::computeMuscleVolumes() {
     SimTK::Vector msl_volume(_model.getMuscles().getSize(), 1.0);
 
     if (get_use_muscle_volume_weight()) { 
+        log_info("Muscle volume is included in the cost function.");
         int i = 0;
         for (const Muscle& msl : _model.getComponentList<Muscle>()) {
             double l0 = msl.get_optimal_fiber_length();
@@ -1773,6 +1774,7 @@ void COMAKTool::computeMuscleVolumes() {
         _normalized_muscle_volumes = msl_volume/=msl_volume.normInf();
     }
     else {
+        log_info("Muscle volume is not included in the cost function.");
         _normalized_muscle_volumes = msl_volume;
     }
 
