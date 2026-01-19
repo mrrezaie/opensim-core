@@ -1761,7 +1761,7 @@ void COMAKTool::computeMuscleVolumes() {
 
     SimTK::Vector msl_volume(_model.getMuscles().getSize(), 1.0);
 
-    if (use_muscle_volume_weight()) { 
+    if (get_use_muscle_volume_weight()) { 
         int i = 0;
         for (const Muscle& msl : _model.getComponentList<Muscle>()) {
             double l0 = msl.get_optimal_fiber_length();
