@@ -295,8 +295,8 @@ public:
         "Force = activation * max_isometric_force(). "            
         "The default value is false.")
 
-    OpenSim_DECLARE_PROPERTY(use_muscle_weight, bool,
-        "Set whether muscle volume should be used in the cost function. "          
+    OpenSim_DECLARE_PROPERTY(use_muscle_volume_weight, bool,
+        "Set whether muscle volume weight should be used in the cost function. "          
         "The default value is true.")
 
     OpenSim_DECLARE_PROPERTY(geometry_folder, std::string,

@@ -101,7 +101,7 @@ void COMAKTool::constructProperties()
         COMAKCostFunctionParameterSet());
 
     constructProperty_use_muscle_physiology(false);
-    constructProperty_use_muscle_weight(true);
+    constructProperty_use_muscle_volume_weight(true);
 
     constructProperty_model_assembly_accuracy(1e-12);
     constructProperty_geometry_folder("");
@@ -1761,7 +1761,7 @@ void COMAKTool::computeMuscleVolumes() {
 
     SimTK::Vector msl_volume(_model.getMuscles().getSize(), 1.0);
 
-    if (get_use_muscle_weight()) { 
+    if (use_muscle_volume_weight()) { 
         int i = 0;
         for (const Muscle& msl : _model.getComponentList<Muscle>()) {
             double l0 = msl.get_optimal_fiber_length();
