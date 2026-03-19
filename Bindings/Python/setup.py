@@ -45,13 +45,8 @@ setup(name='opensim',
       ],
       # The last 3 entries are for if OPENSIM_PYTHON_STANDALONE is ON.
       # The asterisk after the extension is to handle version numbers on Linux.
-      package_data={'opensim': ['_*.*', '*.dylib', '*.dll', '*.so*']},
-      # Create a command-line tool for generating a report.
-      entry_points={
-          'console_scripts': [
-              'opensim-moco-generate-report = opensim.report:main',
-          ],
-      },
+      package_data={'opensim': ['_*.*', '*.dylib', '*.dll', '*.so*', 'simbody-*',
+                    'simbody-*.*/*/*/*', 'Geometry/*.*']},
       include_package_data=True,
       classifiers=[
           'Intended Audience :: Science/Research',
@@ -60,9 +55,10 @@ setup(name='opensim',
           'Topic :: Scientific/Engineering :: Physics',
           ],
           install_requires=[
-              "numpy>=2.0"
+              "numpy>=2.1"
           ],
           distclass=BinaryDistribution
       )
+
 # To build the wheel, run the following command:
-#python setup.py bdist_wheel
+# python setup.py bdist_wheel

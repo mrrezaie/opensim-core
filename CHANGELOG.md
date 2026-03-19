@@ -38,6 +38,22 @@ performance and stability in wrapping solutions.
 - Breaking: removed the `operator==` and `operator<` overloads in `ControlLinearNode` and replaced usages with the equivalent utility functions `isEqual()` and `isLessThan()`. (#4095)
 - Made various changes to support builds on Ubuntu 24.04 with GCC 13. (#4186)
 - Support building PYPI distribution python wheels on all platforms, upgrade builds to python 3.11 and numpy 2.0. (#4189)
+- Completed the implementation of the `MeyerFregly2016Force` class to support NMSM Pipeline-equivalent contact models in Moco. (#4234)
+- The experimental classes `AckermannVanDenBogert2010Force` and `EspositoMiller2018Force` have been removed. (#4234)
+- Fixed an issue prevent element-by-element construction of `Mat33` objects in Matlab and Python. (#4241)
+- Added class `MeyerFregly2016Muscle` to support NMSM Pipeline-equivalent muscle models in Moco. (#4233)
+- Breaking: replaced `MocoJointReactionGoal::setWeight()`/`setWeightSet()` with `setReactionWeight()`/`setReactionWeightSet()` to avoid conflict with `MocoGoal::setWeight()`. (#4256)
+- Fixed a double-free issue that libASAN detects when loading/simulating models containing Thelen2003Muscle
+- Fixed a compile-time issue where `OutputReporter` was using the `Model` API without having access to its definition.
+- Added `ScopeExit`, which is a lightweight C++-only class for calling a function/lambda when it destructs (similar to `std::experimental::scope_exit`).
+- Fixed a leak in `Model::extendConnectToModel` that can occur when an exception is thrown midway through model graph creation.
+- Updated `osimMocoTrajectoryReport.m` to directly generate a PDF report, rather than converting from a PostScript file. (#4274)
+- Fixed an issue where the final time used for `example2DWalking` and `example2DWalkingMetabolics` was inconsistent with the filtered coordinate reference data. (#4273)
+- Fixed an issue in the Java bindings where setting the `Manager::IntegratorMethod` via `setIntegratorMethod()` with an integer argument did not work. (#4277)
+- Fixed simbody-visualizer not found in PATH on windows when launching program lives on different drive. (simbody#765)
+- Fixed an issue in `PolynomialPathFitter` where the process would segfault if too few coordinate samples were used. (#4280)
+- Fixed an issue in `PolynomialPathFitter` where the process assign threads to model forces without a wrapping path. (#4280)
+- `PolynomialPathFitter` now gracefully handles model configurations that lead to invalid path computations due to random sampling. (#4280)
 
 
 v4.5.2

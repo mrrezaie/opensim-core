@@ -33,6 +33,7 @@
 #include <OpenSim/Simulation/Model/ElasticFoundationForce.h>
 #include <OpenSim/Simulation/Model/HuntCrossleyForce.h>
 #include <OpenSim/Simulation/Model/SmoothSphereHalfSpaceForce.h>
+#include <OpenSim/Simulation/Model/ExponentialContactForce.h>
 
 #include <OpenSim/Simulation/Model/ContactGeometrySet.h>
 #include <OpenSim/Simulation/Model/Probe.h>
@@ -138,6 +139,7 @@
 #include <OpenSim/Simulation/Model/BushingForce.h>
 #include <OpenSim/Simulation/Model/FunctionBasedBushingForce.h>
 #include <OpenSim/Simulation/Model/ExpressionBasedBushingForce.h>
+#include <OpenSim/Simulation/Model/MeyerFregly2016Force.h>
 
 #include <OpenSim/Simulation/Solver.h>
 #include <OpenSim/Simulation/AssemblySolver.h>
