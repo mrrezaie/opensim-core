@@ -131,9 +131,6 @@ void testPassiveFlexion() {
     jnt_mech.set_output_orientation_frame("ground");
     jnt_mech.set_output_position_frame("ground");
     jnt_mech.set_write_vtp_files(true);
-    jnt_mech.set_write_h5_file(true);
-    jnt_mech.set_h5_kinematics_data(true);
-    jnt_mech.set_h5_states_data(true);
 
     jnt_mech.set_use_visualizer(useVisualizer);
     jnt_mech.print("./inputs/healthy_joint_mechanics_settings.xml");

@@ -27,7 +27,6 @@
 #include "COMAKTarget.h"
 #include "COMAKTool.h"
 #include "ForsimTool.h"
-#include "H5FileAdapter.h"
 #include "JointMechanicsTool.h"
 
 

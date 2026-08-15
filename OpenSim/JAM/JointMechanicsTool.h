@@ -19,10 +19,7 @@
 #include <OpenSim/Simulation/Model/Analysis.h>
 #include <OpenSim/Simulation/Model/Model.h>
 #include "OpenSim/Simulation/Model/Smith2018ArticularContactForce.h"
-//#include "H5FileAdapter.h"
 #include "osimJAMDLL.h"
-//#include "H5Cpp.h"
-//#include "hdf5_hl.h"
 #include "OpenSim/Simulation/StatesTrajectory.h"
 #include "OpenSim/JAM/JointMechanicsSettingsSet.h"
 
@@ -270,18 +267,6 @@ public:
         "'binary' (more compact and can be read faster) formats. "
         "The default value is binary")
 
-    OpenSim_DECLARE_PROPERTY(write_h5_file, bool,
-        "Write binary .h5 file")
-
-    OpenSim_DECLARE_PROPERTY(h5_states_data, bool,
-        "Write states data to .h5 file")
-
-    OpenSim_DECLARE_PROPERTY(h5_kinematics_data, bool,
-        "Write kinematics data to .h5 file")
-
-    /*OpenSim_DECLARE_PROPERTY(h5_transforms_data, bool,
-        "Write frame 4x4 transform matrix to .h5 file")*/
-
     OpenSim_DECLARE_UNNAMED_PROPERTY(JointMechanicsFrameTransformSet,
         "List of JointMechanicsFrameTransform objects to insert virtual "
         "joints to report the transformations between any two frames in. "
@@ -349,7 +334,6 @@ private:
     void writeLineVTPFiles(std::string line_name,
         const SimTK::Vector& nPoints, const SimTK::Matrix_<SimTK::Vec3>& path_points,
         const std::vector<std::string>& output_double_names, const SimTK::Matrix& output_double_values);
-    void writeH5File(const std::string &aBaseName, const std::string &aDir);
     void writeTransformsFile();
     void setupLigamentStorage();
     void setupMuscleStorage();

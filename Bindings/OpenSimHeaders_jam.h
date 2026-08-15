@@ -7,7 +7,6 @@
 //#include <OpenSim/JAM/base64.h>
 //#include <OpenSim/JAM/JAMUtilities.h>
 
-#include <OpenSim/JAM/H5FileAdapter.h>
 #include <OpenSim/JAM/VTPFileAdapter.h>
 
 #include <OpenSim/JAM/COMAKInverseKinematicsTool.h>

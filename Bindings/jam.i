@@ -5,16 +5,12 @@
 
 namespace OpenSim {
     %ignore VTPFileAdapter::VTPFileAdapter(VTPFileAdapter &&);
-    %ignore H5FileAdapter::H5FileAdapter(H5FileAdapter &&);
 }
 
 
 
 %shared_ptr(OpenSim::VTPFileAdapter)
-%shared_ptr(OpenSim::H5FileAdapter)
-
 %include <OpenSim/JAM/VTPFileAdapter.h>
-%include <OpenSim/JAM/H5FileAdapter.h>
 
 %include <OpenSim/JAM/COMAKSettings.h>
 %template(SetCOMAKSecondaryCoordinates) OpenSim::Set<OpenSim::COMAKSecondaryCoordinate, OpenSim::Object>;

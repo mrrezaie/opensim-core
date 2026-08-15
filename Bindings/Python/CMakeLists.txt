@@ -139,7 +139,6 @@ macro(OpenSimAddPythonModule)
     target_include_directories(${_libname} PRIVATE
             "${Python3_INCLUDE_DIRS}"
             "${Python3_NumPy_INCLUDE_DIRS}"
-            "${HDF5_INCLUDE_DIR}"
             )
 
     # On macOS, the python interpreter might link to the python library 
