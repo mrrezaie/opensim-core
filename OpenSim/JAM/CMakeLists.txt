@@ -40,7 +40,7 @@ set(JAM_INCLUDES
 OpenSimAddLibrary(
     KIT JAM
     AUTHORS "Colin_Smith"    
-    LINKLIBS PUBLIC ${Simbody_LIBRARIES} spdlog::spdlog osimTools osimCommon
+    LINKLIBS PUBLIC ${Simbody_LIBRARIES} osimTools osimCommon
     INCLUDES ${JAM_INCLUDES} 
     SOURCES ${JAM_SOURCES}
     TESTDIRS Test

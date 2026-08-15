@@ -35,7 +35,7 @@
 #include <set>
 #include <cmath>
 #include <math.h>
-
+#include <format>
 using namespace OpenSim;
 
 using std::set;
@@ -855,8 +855,10 @@ void Smith2018ContactMesh::printMeshDebugInfo() const {
         SimTK::Vec3 c = center(i);
         SimTK::Vec3 n = normal(i);
 
-        log_trace("{:<10} {:<15} {:<15} {:<15} {:<15} {:<35} {:<35}",
-          i, a, t, E, v, c, n);
+        // log_trace(
+        //     std::format("{:<10} {:<15} {:<15} {:<15} {:<15} {:<35} {:<35}",
+        //   i, a, t, E, v, c, n)
+        // );
     }
 }
 

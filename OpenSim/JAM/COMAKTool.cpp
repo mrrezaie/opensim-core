@@ -1924,9 +1924,9 @@ void COMAKTool::printOptimizationResultsToConsole(
         double max_prx =
             cnt.getOutputValue<double>(state, "casting_total_max_proximity");
 
-        log_debug("{:<20} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}",
-            cnt.getName(), num_cnt_tri, cnt_frc, cnt_moment,
-            mean_prs, max_prs, mean_prx, max_prx);
+        // log_debug("{:<20} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10} {:<10}",
+        //     cnt.getName(), num_cnt_tri, cnt_frc, cnt_moment,
+        //     mean_prs, max_prs, mean_prx, max_prx);
     }
 
 

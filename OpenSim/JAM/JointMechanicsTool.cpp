@@ -2463,6 +2463,80 @@ void JointMechanicsTool::writeLineVTPFiles(std::string line_name,
     }
 }
 
+void JointMechanicsTool::writeTransformsFile() {
+    std::string file_type = get_output_transforms_file_type();
+    if (file_type == "sto" || file_type == ".sto") {
+        std::string full_file = get_results_directory() + "/" +
+            get_results_file_basename() + "_frame_transforms_in_" + 
+            get_output_orientation_frame() + ".sto";
+
+        STOFileAdapter().write(_model_frame_transforms, full_file);
+    }
+    if (file_type == "csv" || file_type == ".csv") {
+        std::string full_file = get_results_directory() + "/"+
+            get_results_file_basename() + "_frame_transforms_in_" + 
+            get_output_orientation_frame() + ".csv";
+
+        CSVFileAdapter().write(_model_frame_transforms, full_file);
+    }
+}
+
+/*Once OpenSim is upgraded to 4.2 this can be replaced with TableUtilities*/
+int JointMechanicsTool::findStateLabelIndexInternal(const std::string* begin,
+        const std::string* end, const std::string& desired) {
+
+    auto found = std::find(begin, end, desired);
+    if (found != end) return (int)std::distance(begin, found);
+
+    // 4.0 and its beta versions differ slightly in the absolute path but
+    // the <joint>/<coordinate>/value (or speed) will be common to both.
+    // Likewise, for muscle states <muscle>/activation (or fiber_length)
+    // must be common to the state variable (path) name and column label.
+    std::string shortPath = desired;
+    std::string::size_type front = shortPath.find('/');
+    while (found == end && front < std::string::npos) {
+        shortPath = shortPath.substr(front + 1, desired.length());
+        found = std::find(begin, end, shortPath);
+        front = shortPath.find('/');
+    }
+    if (found != end) return (int)std::distance(begin, found);
+
+    // Assume column labels follow pre-v4.0 state variable labeling.
+    // Redo search with what the pre-v4.0 label might have been.
+
+    // First, try just the last element of the path.
+    std::string::size_type back = desired.rfind('/');
+    std::string prefix = desired.substr(0, back);
+    std::string shortName = desired.substr(back + 1, desired.length() - back);
+    found = std::find(begin, end, shortName);
+    if (found != end) return (int)std::distance(begin, found);
+
+    // If that didn't work, specifically check for coordinate state names
+    // (<coord_name>/value and <coord_name>/speed) and muscle state names
+    // (<muscle_name>/activation <muscle_name>/fiber_length).
+    if (shortName == "value") {
+        // pre-v4.0 did not have "/value" so remove it if here
+        back = prefix.rfind('/');
+        shortName = prefix.substr(back + 1, prefix.length());
+        found = std::find(begin, end, shortName);
+    } else if (shortName == "speed") {
+        // replace "/speed" (the v4.0 labeling for speeds) with "_u"
+        back = prefix.rfind('/');
+        shortName = prefix.substr(back + 1, prefix.length() - back) + "_u";
+        found = std::find(begin, end, shortName);
+    } else if (back < desired.length()) {
+        // try replacing the '/' with '.' in the last segment
+        shortName = desired;
+        shortName.replace(back, 1, ".");
+        back = shortName.rfind('/');
+        shortName = shortName.substr(back + 1, shortName.length() - back);
+        found = std::find(begin, end, shortName);
+    }
+    if (found != end) return (int)std::distance(begin, found);
+
+    // If all of the above checks failed, return -1.
+    return -1;
+}
 /*
 void JointMechanicsTool::loadModel(const std::string &aToolSetupFileName)
 {

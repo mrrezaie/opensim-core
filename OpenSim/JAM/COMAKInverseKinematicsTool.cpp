@@ -1097,11 +1097,11 @@ void COMAKInverseKinematicsTool::printDebugInfo(const Model& model, const SimTK:
     for (const Smith2018ArticularContactForce& cnt :
             model.getComponentList<Smith2018ArticularContactForce>()) {
 
-        log_debug("{:<20} {:<20} {:<20}", cnt.getName(),
-                cnt.getOutputValue<SimTK::Vec3>(
-                        state, "casting_total_contact_force"),
-                cnt.getOutputValue<SimTK::Vec3>(
-                        state, "casting_total_center_of_pressure"));
+        // log_debug("{:<20} {:<20} {:<20}", cnt.getName(),
+        //         cnt.getOutputValue<SimTK::Vec3>(
+        //                 state, "casting_total_contact_force"),
+        //         cnt.getOutputValue<SimTK::Vec3>(
+        //                 state, "casting_total_center_of_pressure"));
     }
     log_debug("");
     /*
