@@ -131,12 +131,20 @@ function(AddDependency)
              -DCMAKE_C_FLAGS_RELEASE:STRING=${CMAKE_C_FLAGS_RELEASE})
         list(APPEND CMAKE_ARGS
              -DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=${CMAKE_C_FLAGS_RELWITHDEBINFO})
+        if(CMAKE_MSVC_RUNTIME_LIBRARY)
+            list(APPEND CMAKE_ARGS
+                 -DCMAKE_MSVC_RUNTIME_LIBRARY:STRING=${CMAKE_MSVC_RUNTIME_LIBRARY}
+                 -DCMAKE_POLICY_DEFAULT_CMP0091:STRING=NEW)
+        endif()
         if(APPLE)
             list(APPEND CMAKE_ARGS
                  -DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET})
         endif()
         if(SWIG_EXECUTABLE)
             list(APPEND CMAKE_ARGS -DSWIG_EXECUTABLE:FILEPATH=${SWIG_EXECUTABLE})
+        endif()
+        if(CMAKE_INSTALL_LIBDIR)
+            list(APPEND CMAKE_ARGS -DCMAKE_INSTALL_LIBDIR:STRING=${CMAKE_INSTALL_LIBDIR})
         endif()
 
         # Append the dependency-specific CMake arguments.
@@ -179,7 +187,7 @@ SetDefaultCMakeBuildType()
 AddDependency(NAME       ezc3d
               DEFAULT    OFF
               GIT_URL    https://github.com/pyomeca/ezc3d.git
-              GIT_TAG    Release_1.6.3
+              GIT_TAG    Release_1.7.2
               CMAKE_ARGS -DBUILD_EXAMPLE:BOOL=OFF)
 
 AddDependency(NAME       simbody
@@ -190,28 +198,6 @@ AddDependency(NAME       simbody
                          -DBUILD_TESTING:BOOL=OFF
                          ${SIMBODY_EXTRA_CMAKE_ARGS})
 
-set(SPDLOG_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-AddDependency(NAME       spdlog
-              DEFAULT    ON
-              GIT_URL    https://github.com/gabime/spdlog.git
-              GIT_TAG    v1.15.3
-              CMAKE_ARGS -DSPDLOG_BUILD_BENCH:BOOL=OFF
-                         -DSPDLOG_BUILD_TESTS:BOOL=OFF
-                         -DSPDLOG_BUILD_EXAMPLE:BOOL=OFF
-                         -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
-                         -DCMAKE_CXX_FLAGS:STRING=${SPDLOG_CXX_FLAGS})
-
-AddDependency(NAME hdf5
-              DEFAULT ON
-              GIT_URL https://github.com/HDFGroup/hdf5.git
-              GIT_TAG hdf5-1_12_0
-              CMAKE_ARGS -DBUILD_STATIC_LIBS:BOOL=ON
-                         -DBUILD_TESTING:BOOL=OFF
-                         -DHDF5_CPP_LIB:BOOL=ON
-                         -DHDF5_BUILD_EXAMPLES:BOOL=OFF
-                         -DHDF5_BUILD_TOOLS:BOOL=OFF)
-                         
 AddDependency(NAME       catch2
               DEFAULT    ON
               GIT_URL    https://github.com/catchorg/Catch2.git
