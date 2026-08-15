@@ -127,11 +127,11 @@ bool COMAKTool::run()
     auto cwd = IO::CwdChanger::changeToParentOf(getDocumentFileName());
 
     try {
-        if (get_use_muscle_physiology()) { 
-            OPENSIM_THROW(Exception, 
-                "ERROR: COMAKTool use_muscle_physiology = true "
-                "is not implemented")
-        };
+        // if (get_use_muscle_physiology()) { 
+        //     OPENSIM_THROW(Exception, 
+        //         "ERROR: COMAKTool use_muscle_physiology = true "
+        //         "is not implemented")
+        // };
 
         const Stopwatch stopwatch;
         log_critical("");
@@ -502,6 +502,9 @@ SimTK::State COMAKTool::initialize()
         }
     }
 
+    _active_element_force.resize(_n_muscles);
+    _passive_element_force.resize(_n_muscles);
+
     for (ScalarActuator &actuator : 
         _model.updComponentList<ScalarActuator>()) {
 
@@ -824,7 +827,19 @@ void COMAKTool::performCOMAK()
         _model.assemble(state);
         _model.realizeVelocity(state);
 
-        //Print initial optimization 
+        //Compute Muscle Force
+        int m = 0;
+        for (Muscle &msl : _model.updComponentList<Muscle>()) {        
+            msl.setActivation(state, 1.0);
+            msl.computeEquilibrium(state);
+            double activeElement = msl.getActiveFiberForceAlongTendon(state);
+            double passiveElement = msl.getPassiveFiberForceAlongTendon(state);
+            _active_element_force[m] = activeElement;
+            _passive_element_force[m] = passiveElement;
+            m++;
+        }
+
+            //Print initial optimization 
         if (frame_num == 1) {
             printOptimizationResultsToConsole(_optim_parameters, state);
         }
@@ -879,6 +894,8 @@ void COMAKTool::performCOMAK()
                 _secondary_coord_max_change);
 
             target.setOptimalForces(_optimal_force);
+            target.setActiveElementForces(_active_element_force);
+            target.setPassiveElementForces(_passive_element_force);
             target.setMuscleVolumes(_normalized_muscle_volumes);
             target.setContactEnergyWeight(get_contact_energy_weight());
             target.setNonMuscleActuatorWeight(
@@ -1158,7 +1175,8 @@ void COMAKTool::setStateFromComakParameters(
     for (int m = 0; m < _n_muscles; ++m) {
         Muscle &msl = _model.updComponent<Muscle>(_muscle_path[m]);
         msl.overrideActuation(state, true);
-        double force = _optimal_force[j] * parameters[j];
+        // double force = _optimal_force[j] * parameters[j];
+        double force = parameters[j] *_active_element_force[j] + _passive_element_force[j];
         msl.setOverrideActuation(state,force);
         j++;
     }
@@ -1235,9 +1253,19 @@ void COMAKTool::recordResultsStorage(const SimTK::State& state, int frame) {
     SimTK::RowVector activations(_n_actuators);
     SimTK::RowVector forces(_n_actuators);
 
-    for (int m = 0; m < _n_actuators; ++m) {
-        activations(m) = _optim_parameters(m);
-        forces(m) = _optim_parameters(m)*_optimal_force(m);
+    int j = 0;
+    for (int m = 0; m < _n_muscles; ++m) {
+        activations(j) = _optim_parameters[j];
+        // forces(j) = _optim_parameters[j]*_optimal_force[j];
+        forces(j) = _optim_parameters[j]*_active_element_force[j] + _passive_element_force[j];
+        j++;
+    }
+
+    //Set Reserve Activations to Optimized
+    for (int m = 0; m < _n_non_muscle_actuators; ++m) {
+        activations(j) = _optim_parameters[j];
+        forces(j) = _optim_parameters[j]*_optimal_force[j];
+        j++;
     }
 
     _result_activations.appendRow(_time[frame], activations);
@@ -1358,7 +1386,7 @@ SimTK::Vector COMAKTool::equilibriateSecondaryCoordinates()
     for (Muscle& msl : settle_model.updComponentList<Muscle>()) {
         if (msl.getConcreteClassName() == "Millard2012EquilibriumMuscle") {
             msl.set_ignore_activation_dynamics(true);
-            msl.set_ignore_tendon_compliance(true);
+            // msl.set_ignore_tendon_compliance(true);
         }
     }
 
@@ -1825,7 +1853,7 @@ void COMAKTool::printOptimizationResultsToConsole(
     int p = 0;
     for (int k = 0; k < _n_muscles; ++k) {
         log_debug("{:<20} {:<20} {:<20}", _optim_parameter_names[p],
-            parameters[p], parameters[p] * _optimal_force[p]);
+            parameters[p], parameters[p] * _active_element_force[p] + _passive_element_force[p]);
         p++;
     }
 

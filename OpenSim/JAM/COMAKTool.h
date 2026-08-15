@@ -402,6 +402,8 @@ private:
     Array<std::string> _secondary_damping_actuator_path;
 
     SimTK::Vector _optimal_force;
+    SimTK::Vector _active_element_force;
+    SimTK::Vector _passive_element_force;
     SimTK::Vector _prev_secondary_value;
     SimTK::Vector _prev_parameters;
     SimTK::State _prev_state;
