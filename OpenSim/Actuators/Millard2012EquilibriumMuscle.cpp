@@ -1758,7 +1758,7 @@ calcActiveFiberForceAlongTendon(double activation,
         double fpe  = fpeCurve.calcValue(lceN);
 
         //Evaluate the pennation angle
-        double phi = getPennationModel().calcPennationAngle(fiberLength);
+        double phi = getPennationModel().calcPennationAngle(lceN);
 
         //Compute the active fiber force
         double fa = calcFiberForceActive(fiso, ca, fal, fv);
