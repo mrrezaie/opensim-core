@@ -131,8 +131,12 @@ public:
          _optimal_force = optimal_force;
     }
 
-    void setPassiveForces(SimTK::Vector passive_force) {
-         _passive_force = passive_force;
+    void setActiveElementForces(SimTK::Vector active_element_force) {
+         _active_element_force = active_element_force;
+    }
+
+    void setPassiveElementForces(SimTK::Vector passive_element_force) {
+         _passive_element_force = passive_element_force;
     }
 
     void setMuscleVolumes(SimTK::Vector msl_volumes) {
@@ -166,7 +170,8 @@ private:
     Model *_model;
     SimTK::State _state;
     SimTK::Vector _optimal_force;
-    SimTK::Vector _passive_force;    
+    SimTK::Vector _active_element_force;
+    SimTK::Vector _passive_element_force;    
     const SimTK::Vector _init_parameters;
     double _activation_exponent;
     SimTK::Vector _observed_udot;
