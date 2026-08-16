@@ -33,8 +33,7 @@
 using namespace OpenSim;
 using namespace SimTK;
 
-COMAKTool::COMAKTool()
-{
+COMAKTool::COMAKTool() {
     constructProperties();
     //_directoryOfSetupFile = "";
     _model_exists = false;
@@ -48,8 +47,7 @@ COMAKTool::COMAKTool(const std::string file) : Object(file) {
     //IO::chDir(_directoryOfSetupFile);
 }
 
-void COMAKTool::constructProperties()
-{
+void COMAKTool::constructProperties() {
     constructProperty_model_file("");
     constructProperty_coordinates_file("");
     constructProperty_external_loads_file("");
@@ -120,18 +118,17 @@ void COMAKTool::setModel(Model& model) {
     _model_exists = true;
 }
 
-bool COMAKTool::run()
-{
+bool COMAKTool::run() {
     bool completed = false;
     
     auto cwd = IO::CwdChanger::changeToParentOf(getDocumentFileName());
 
     try {
-        if (get_use_muscle_physiology()) { 
-            OPENSIM_THROW(Exception, 
-                "ERROR: COMAKTool use_muscle_physiology = true "
-                "is not implemented")
-        };
+        // if (get_use_muscle_physiology()) { 
+        //     OPENSIM_THROW(Exception, 
+        //         "ERROR: COMAKTool use_muscle_physiology = true "
+        //         "is not implemented")
+        // };
 
         const Stopwatch stopwatch;
         log_critical("");
@@ -168,8 +165,7 @@ bool COMAKTool::run()
     return completed;
 }
 
-SimTK::State COMAKTool::initialize()
-{
+SimTK::State COMAKTool::initialize() {
     //Make results directory
     int makeDir_out = IO::makeDir(get_results_directory());
     if (errno == ENOENT && makeDir_out == -1) {
@@ -493,14 +489,25 @@ SimTK::State COMAKTool::initialize()
     _optimal_force.resize(_n_actuators);
 
     int i = 0;
-    for (const Muscle& msl : _model.updComponentList<Muscle>()) {
+    for (Muscle& msl : _model.updComponentList<Muscle>()) {
         if (msl.appliesForce(state)) {
             _optimal_force[i] = msl.getMaxIsometricForce();
             i++;
             _n_muscles++;
             _muscle_path.append(msl.getAbsolutePathString());
         }
+
+        // if (msl.getConcreteClassName() == "Millard2012EquilibriumMuscle") {
+        // msl.set_ignore_activation_dynamics(true); // no influence
+        msl.set_ignore_tendon_compliance(true);
+        if (get_use_muscle_physiology()) {
+            msl.set_ignore_tendon_compliance(false);
+        }
     }
+
+    // set size and the initial value
+    _passive_force.resize(_n_muscles);
+    _passive_force = 0.0;
 
     for (ScalarActuator &actuator : 
         _model.updComponentList<ScalarActuator>()) {
@@ -626,7 +633,7 @@ SimTK::State COMAKTool::initialize()
         if(found_msl == false){
             _cost_muscle_weights.cloneAndAppend(Constant(1.0));
             _cost_muscle_desired_act.cloneAndAppend(Constant(0.0));
-            _cost_muscle_act_lower_bound.cloneAndAppend(Constant(0.01));
+            _cost_muscle_act_lower_bound.cloneAndAppend(Constant(0.0));
             _cost_muscle_act_upper_bound.cloneAndAppend(Constant(1.0));
             
         }
@@ -656,8 +663,7 @@ SimTK::State COMAKTool::initialize()
     return state;
 }
 
-void COMAKTool::performCOMAK()
-{
+void COMAKTool::performCOMAK() {
 
 
     SimTK::State state = initialize();
@@ -824,6 +830,18 @@ void COMAKTool::performCOMAK()
         _model.assemble(state);
         _model.realizeVelocity(state);
 
+        //Compute Muscle Force
+        int m = 0;
+        if (get_use_muscle_physiology()) {
+            for (Muscle &msl : _model.updComponentList<Muscle>()) {        
+                msl.setActivation(state, 1.0);
+                msl.computeEquilibrium(state); // required when tendon is compliant
+                _optimal_force[m] = msl.getActiveFiberForceAlongTendon(state);
+                _passive_force[m] = msl.getPassiveFiberForceAlongTendon(state);
+                m++;
+            }
+        }
+
         //Print initial optimization 
         if (frame_num == 1) {
             printOptimizationResultsToConsole(_optim_parameters, state);
@@ -879,6 +897,7 @@ void COMAKTool::performCOMAK()
                 _secondary_coord_max_change);
 
             target.setOptimalForces(_optimal_force);
+            target.setPassiveForces(_passive_force);
             target.setMuscleVolumes(_normalized_muscle_volumes);
             target.setContactEnergyWeight(get_contact_energy_weight());
             target.setNonMuscleActuatorWeight(
@@ -1158,7 +1177,7 @@ void COMAKTool::setStateFromComakParameters(
     for (int m = 0; m < _n_muscles; ++m) {
         Muscle &msl = _model.updComponent<Muscle>(_muscle_path[m]);
         msl.overrideActuation(state, true);
-        double force = _optimal_force[j] * parameters[j];
+        double force = parameters[j] * _optimal_force[j] + _passive_force[j];
         msl.setOverrideActuation(state,force);
         j++;
     }
@@ -1235,9 +1254,17 @@ void COMAKTool::recordResultsStorage(const SimTK::State& state, int frame) {
     SimTK::RowVector activations(_n_actuators);
     SimTK::RowVector forces(_n_actuators);
 
-    for (int m = 0; m < _n_actuators; ++m) {
-        activations(m) = _optim_parameters(m);
-        forces(m) = _optim_parameters(m)*_optimal_force(m);
+    int j = 0;
+    for (int m = 0; m < _n_muscles; ++m) {
+        activations(j) = _optim_parameters[j];
+        forces(j) = _optim_parameters[j] * _optimal_force[j] + _passive_force[j];
+        j++;
+    }
+
+    for (int m = 0; m < _n_non_muscle_actuators; ++m) {
+        activations(j) = _optim_parameters[j];
+        forces(j) = _optim_parameters[j]*_optimal_force[j];
+        j++;
     }
 
     _result_activations.appendRow(_time[frame], activations);
@@ -1339,8 +1366,7 @@ void COMAKTool::printResultsFiles() {
     _model.updAnalysisSet().printResults(get_results_prefix(), get_results_directory());
 }
 
-SimTK::Vector COMAKTool::equilibriateSecondaryCoordinates() 
-{
+SimTK::Vector COMAKTool::equilibriateSecondaryCoordinates() {
     Model settle_model = _model;
     SimTK::State state = settle_model.initSystem();
 
@@ -1691,8 +1717,7 @@ void COMAKTool::extractKinematicsFromFile() {
     }
 }
 
-void COMAKTool::applyExternalLoads()
-{
+void COMAKTool::applyExternalLoads() {
     if(get_external_loads_file() == "" || 
         get_external_loads_file() == "Unassigned") {
 
@@ -1736,8 +1761,7 @@ void COMAKTool::applyExternalLoads()
     return;
 }
 
-void COMAKTool::updateModelForces()
-{
+void COMAKTool::updateModelForces() {
     // If replacing force set read in from model file, clear it here
     if (get_replace_force_set()){
         // Can no longer just remove the model's forces.
@@ -1825,7 +1849,7 @@ void COMAKTool::printOptimizationResultsToConsole(
     int p = 0;
     for (int k = 0; k < _n_muscles; ++k) {
         log_debug("{:<20} {:<20} {:<20}", _optim_parameter_names[p],
-            parameters[p], parameters[p] * _optimal_force[p]);
+            parameters[p], parameters[p] * _optimal_force[p] + _passive_force[p]);
         p++;
     }
 
