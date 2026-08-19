@@ -70,6 +70,9 @@ protected:
     PropertyBool _useMusclePhysiologyProp;
     bool    &_useMusclePhysiology;
 
+    PropertyBool _useCompliantTendonDynamicsProp;
+    bool    &_useCompliantTendonDynamics;
+
     PropertyDbl _convergenceCriterionProp;
     double &_convergenceCriterion;
 
@@ -134,6 +137,8 @@ public:
     double getActivationExponent() const { return _activationExponent; }
     void setUseMusclePhysiology(const bool useIt) { _useMusclePhysiology=useIt; }
     bool getUseMusclePhysiology() const { return _useMusclePhysiology; }
+    void setUseCompliantTendonDynamics(const bool useIt) { _useCompliantTendonDynamics=useIt; }
+    bool getUseCompliantTendonDynamics() const { return _useCompliantTendonDynamics; }    
     void setConvergenceCriterion(const double tolerance) { _convergenceCriterion = tolerance; }
     double getConvergenceCriterion() { return _convergenceCriterion; }
     void setMaxIterations( const int maxIt) { _maximumIterations = maxIt; }

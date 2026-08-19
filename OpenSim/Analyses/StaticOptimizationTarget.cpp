@@ -48,12 +48,15 @@ const double StaticOptimizationTarget::SMALLDX = 1.0e-14;
 //==============================================================================
 //______________________________________________________________________________
 StaticOptimizationTarget::StaticOptimizationTarget(const SimTK::State& s,
-        Model* aModel, int aNP, int aNC, bool useMusclePhysiology) {
+        Model* aModel, int aNP, int aNC, 
+        bool useMusclePhysiology, bool useCompliantTendonDynamics) {
     // ALLOCATE STATE ARRAYS
     _recipAreaSquared.setSize(aNP);
     _recipOptForceSquared.setSize(aNP);
     _optimalForce.setSize(aNP);
+    _passiveForce.setSize(aNP);
     _useMusclePhysiology = useMusclePhysiology;
+    _useCompliantTendonDynamics = useCompliantTendonDynamics;
 
     setModel(*aModel);
     setNumParams(aNP);
@@ -84,13 +87,19 @@ bool StaticOptimizationTarget::prepareToOptimize(SimTK::State& s, double* x) {
         ScalarActuator* act = dynamic_cast<ScalarActuator*>(&fSet.get(i));
         if (act) {
             double fOpt;
+            double fPas = 0.0;
             Muscle* mus = dynamic_cast<Muscle*>(&fSet.get(i));
             if (mus) {
                 // ActivationFiberLengthMuscle *aflmus =
                 // dynamic_cast<ActivationFiberLengthMuscle*>(mus);
-                if (mus && _useMusclePhysiology) {
+                if (_useMusclePhysiology) {
                     _model->setAllControllersEnabled(true);
-                    fOpt = mus->calcInextensibleTendonActiveFiberForce(s, 1.0);
+                    mus->setActivation(s, 1.0);
+                    if (_useCompliantTendonDynamics) {
+                        mus->computeEquilibrium(s);
+                        fPas = mus->getPassiveFiberForceAlongTendon(s);
+                    }
+                    fOpt = mus->getActiveFiberForceAlongTendon(s);
                     _model->setAllControllersEnabled(false);
                 } else {
                     fOpt = mus->getMaxIsometricForce();
@@ -98,7 +107,9 @@ bool StaticOptimizationTarget::prepareToOptimize(SimTK::State& s, double* x) {
             } else {
                 fOpt = act->getOptimalForce();
             }
-            _optimalForce[j++] = fOpt;
+            _optimalForce[j] = fOpt;
+            _passiveForce[j] = fPas;
+            ++j;
         }
     }
 
@@ -561,7 +572,9 @@ void StaticOptimizationTarget::computeAcceleration(SimTK::State& s,
     for (int i = 0, j = 0; i < fs.getSize(); i++) {
         ScalarActuator* act = dynamic_cast<ScalarActuator*>(&fs.get(i));
         if (act) {
-            act->setOverrideActuation(s, parameters[j] * _optimalForce[j]);
+            act->setOverrideActuation(s, 
+                parameters[j] * _optimalForce[j] + _passiveForce[j]
+            );
             j++;
         }
     }

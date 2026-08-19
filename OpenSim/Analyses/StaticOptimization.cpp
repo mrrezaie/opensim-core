@@ -32,6 +32,7 @@
 #include <OpenSim/Common/IO.h>
 #include <OpenSim/Simulation/Control/ControlSet.h>
 #include <OpenSim/Simulation/Model/ActivationFiberLengthMuscle.h>
+#include <OpenSim/Simulation/Model/Muscle.h>
 #include <OpenSim/Simulation/Model/Model.h>
 
 using namespace OpenSim;
@@ -57,6 +58,7 @@ StaticOptimization::StaticOptimization(Model* aModel)
           _useModelForceSet(_useModelForceSetProp.getValueBool()),
           _activationExponent(_activationExponentProp.getValueDbl()),
           _useMusclePhysiology(_useMusclePhysiologyProp.getValueBool()),
+          _useCompliantTendonDynamics(_useCompliantTendonDynamicsProp.getValueBool()),
           _convergenceCriterion(_convergenceCriterionProp.getValueDbl()),
           _maximumIterations(_maximumIterationsProp.getValueInt()),
           _modelWorkingCopy(NULL) {
@@ -80,6 +82,7 @@ StaticOptimization::StaticOptimization(
           _useModelForceSet(_useModelForceSetProp.getValueBool()),
           _activationExponent(_activationExponentProp.getValueDbl()),
           _useMusclePhysiology(_useMusclePhysiologyProp.getValueBool()),
+          _useCompliantTendonDynamics(_useCompliantTendonDynamicsProp.getValueBool()),
           _convergenceCriterion(_convergenceCriterionProp.getValueDbl()),
           _maximumIterations(_maximumIterationsProp.getValueInt()),
           _modelWorkingCopy(NULL) {
@@ -114,6 +117,7 @@ StaticOptimization& StaticOptimization::operator=(
     _maximumIterations = aStaticOptimization._maximumIterations;
     _forceReporter = nullptr;
     _useMusclePhysiology = aStaticOptimization._useMusclePhysiology;
+    _useCompliantTendonDynamics = aStaticOptimization._useCompliantTendonDynamics;
     return (*this);
 }
 
@@ -132,6 +136,7 @@ void StaticOptimization::setNull() {
     _forceSet = NULL;
     _activationExponent = 2;
     _useMusclePhysiology = true;
+    _useCompliantTendonDynamics = false;
     _numCoordinateActuators = 0;
     _convergenceCriterion = 1e-4;
     _maximumIterations = 100;
@@ -161,6 +166,11 @@ void StaticOptimization::setupProperties() {
                                         "observed while running optimization.");
     _useMusclePhysiologyProp.setName("use_muscle_physiology");
     _propertySet.append(&_useMusclePhysiologyProp);
+
+    _useCompliantTendonDynamicsProp.setComment("If true compliant tendon dynamics is "
+                                        "used while running optimization.");
+    _useCompliantTendonDynamicsProp.setName("use_compliant_tendon_dynamics");
+    _propertySet.append(&_useCompliantTendonDynamicsProp);
 
     _convergenceCriterionProp.setComment("Value used to determine when the "
                                          "optimization solution has converged");
@@ -300,7 +310,8 @@ int StaticOptimization::record(const SimTK::State& s) {
     // Optimization target
     _modelWorkingCopy->setAllControllersEnabled(false);
     StaticOptimizationTarget target(
-            sWorkingCopy, _modelWorkingCopy, na, nacc, _useMusclePhysiology);
+            sWorkingCopy, _modelWorkingCopy, na, nacc, 
+            _useMusclePhysiology, _useCompliantTendonDynamics);
     target.setStatesStore(_statesStore);
     target.setStatesSplineSet(_statesSplineSet);
     target.setStatesDerivativeStore(_statesDerivativeStore);
@@ -493,6 +504,21 @@ int StaticOptimization::begin(const SimTK::State& s) {
     // Make a working copy of the model
     delete _modelWorkingCopy;
     _modelWorkingCopy = _model->clone();
+
+    // Set tendon compliance
+    if (_useMusclePhysiology) {
+        Set<Muscle> &muscles = _modelWorkingCopy->updMuscles();
+        for (int m = 0; m < muscles.getSize(); m++) {
+            Muscle& musc = dynamic_cast<Muscle&>(muscles.get(m));
+            if (musc.hasProperty("ignore_tendon_compliance")) {
+                musc.set_ignore_tendon_compliance(true);
+                if (_useCompliantTendonDynamics) {
+                    musc.set_ignore_tendon_compliance(false);
+                }
+            }
+        }
+    }
+
     // Remove disabled Actuators so we don't use them downstream (issue #2438)
     const Set<Actuator>& actuators = _modelWorkingCopy->getActuators();
     for (int i = actuators.getSize() - 1; i >= 0; i--) {

@@ -65,6 +65,7 @@ private:
     /** Optimal force accounting for force-length curve if desired and if
      * actuator is a muscle. */
     Array<double> _optimalForce;
+    Array<double> _passiveForce;
 
     SimTK::Matrix _constraintMatrix;
     SimTK::Vector _constraintVector;
@@ -76,6 +77,7 @@ private:
 protected:
     double _activationExponent;
     bool _useMusclePhysiology;
+    bool _useCompliantTendonDynamics;
     /** Perturbation size for computing numerical derivatives. */
     Array<double> _dx;
     Array<int> _accelerationIndices;
@@ -93,9 +95,12 @@ public:
      * @param aNC The number of constraints.
      * @param useMusclePhysiology If false, ignores muscle force-length and
      * force-velocity relationships as well as pennation angle
+     * @param useCompliantTendonDynamics If false, makes tendons rigid
      */
     StaticOptimizationTarget(const SimTK::State& s, Model* aModel, int aNP,
-            int aNC, const bool useMusclePhysiology = true);
+            int aNC, const bool useMusclePhysiology = true,
+            const bool useCompliantTendonDynamics = false
+        );
 
     // SET AND GET
 
