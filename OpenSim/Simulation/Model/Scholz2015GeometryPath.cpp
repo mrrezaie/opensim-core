@@ -7,7 +7,7 @@
  * National Institutes of Health (U54 GM072970, R24 HD065690) and by DARPA    *
  * through the Warrior Web program.                                           *
  *                                                                            *
- * Copyright (c) 2005-2025 Stanford University and the Authors                *
+ * Copyright (c) 2005-2026 Stanford University and the Authors                *
  * Author(s): Nicholas Bianco                                                 *
  * Contributor(s): Pepijn van den Bos, Andreas Scholz                         *
  *                                                                            *
@@ -28,8 +28,6 @@
 #include <OpenSim/Simulation/SimbodyEngine/Coordinate.h>
 #include <OpenSim/Simulation/Model/Model.h>
 #include <OpenSim/Simulation/SimulationUtilities.h>
-
-#include <optional>
 
 using namespace OpenSim;
 
@@ -190,6 +188,17 @@ int Scholz2015GeometryPath::getNumPathElements() const {
     return getProperty_path_elements().size();
 }
 
+void Scholz2015GeometryPath::setUseWarmStart(bool useWarmStart) {
+    if (_index.isValid()) {
+        updCableSpan().setUseWarmStart(useWarmStart);
+    }
+    set_use_warm_start(useWarmStart);
+}
+
+bool Scholz2015GeometryPath::getUseWarmStart() const {
+    return get_use_warm_start();
+}
+
 //=============================================================================
 // ABSTRACT PATH INTERFACE
 //=============================================================================
@@ -245,6 +254,26 @@ findIndependentCoordinates(const SimTK::State& s) const {
 //=============================================================================
 // FORCE PRODUCER INTERFACE
 //=============================================================================
+void Scholz2015GeometryPath::implForEachDecorativePathPoint(
+    const SimTK::State& state,
+    const ModelDisplayHints& hints,
+    const std::function<void(const DecorativePathPoint&)>& callback) const
+{
+    const auto sink = [&callback](SimTK::Vec3 p) {
+        callback(DecorativePathPoint{p});
+    };
+
+    if (hints.get_discretize_path()) {
+        getCableSpan().calcResampledDecorativePathPoints(
+            state,
+            hints.get_num_samples_per_wrap_segment(),
+            sink
+        );
+    } else {
+        getCableSpan().calcDecorativePathPoints(state, sink);
+    }
+}
+
 void Scholz2015GeometryPath::produceForces(const SimTK::State& state,
         double tension, ForceConsumer& forceConsumer) const {
 
@@ -396,44 +425,10 @@ void Scholz2015GeometryPath::extendAddToSystem(
     cable.setCurveSegmentAccuracy(1e-10);
     cable.setSolverMaxIterations(50);
     cable.setAlgorithm(SimTK::CableSpanAlgorithm::Scholz2015);
+    cable.setUseWarmStart(get_use_warm_start());
     _index = cable.getIndex();
 }
 
-void Scholz2015GeometryPath::generateDecorations(
-        bool fixed,
-        const ModelDisplayHints& hints,
-        const SimTK::State& s,
-        SimTK::Array_<SimTK::DecorativeGeometry>& geoms) const {
-
-    if (fixed) { return; }
-    const bool showPathPoints = hints.get_show_path_points();
-    const SimTK::Vec3 color = getColor(s);
-    int index = 0;
-    std::optional<SimTK::Vec3> previous;
-    getCableSpan().calcDecorativePathPoints(s, [&](SimTK::Vec3 x_G) {
-        if (previous) {
-            // Emit line between points
-            geoms.push_back(SimTK::DecorativeLine(*previous, x_G)
-                .setLineThickness(4)
-                .setScaleFactors(SimTK::Vec3{1.0})
-                .setColor(color)
-                .setBodyId(0)
-                .setIndexOnBody(index++)
-            );
-        }
-        if (showPathPoints) {
-            geoms.push_back(SimTK::DecorativeSphere(0.005)
-                .setTransform(x_G)
-                .setScaleFactors(SimTK::Vec3{1.0})
-                .setColor(color)
-                .setBodyId(0)
-                .setIndexOnBody(index++)
-            );
-        }
-
-        previous = x_G;
-    });
-}
 
 void Scholz2015GeometryPath::extendPreScale(const SimTK::State& s,
         const ScaleSet& scaleSet) {
@@ -452,6 +447,7 @@ void Scholz2015GeometryPath::extendPostScale(const SimTK::State& s,
 //=============================================================================
 void Scholz2015GeometryPath::constructProperties() {
     constructProperty_path_elements();
+    constructProperty_use_warm_start(false);
 }
 
 const Scholz2015GeometryPathObstacle* Scholz2015GeometryPath::getObstacle(

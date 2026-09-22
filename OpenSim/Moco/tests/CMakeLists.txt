@@ -1,0 +1,89 @@
+include(CMakeParseArguments)
+
+find_package(Catch2 REQUIRED
+        HINTS "${OPENSIM_DEPENDENCIES_DIR}/catch2")
+
+# Create an executable for the file ${TEST_NAME}.cpp, which depends on
+# libraries ${LIB_DEPENDENCIES}. Also create a CTest test for this executable.
+function(MocoAddTest)
+    set(options)
+    set(oneValueArgs NAME REQUIRES_CASADI)
+    set(multiValueArgs LIB_DEPENDS RESOURCES)
+    cmake_parse_arguments(MOCOTEST
+            "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    add_executable(${MOCOTEST_NAME} ${MOCOTEST_NAME}.cpp
+            "${CMAKE_SOURCE_DIR}/tests/Testing.h")
+    # To organize targets in Visual Studio's Solution Explorer.
+    set_target_properties(${MOCOTEST_NAME} PROPERTIES FOLDER "Moco/Tests")
+    target_link_libraries(${MOCOTEST_NAME} osimMoco ${MOCOTEST_LIB_DEPENDS} Catch2::Catch2WithMain)
+    if(APPLE)
+        list(APPEND test_args "~[win]~[linux]~[win/linux]~[linux/win]")
+    endif()
+    if(LINUX)
+        list(APPEND test_args "~[win]~[mac]~[win/mac]~[mac/win]")
+    endif()
+    if(WIN32)
+        list(APPEND test_args "~[mac]~[linux]~[mac/linux]~[linux/mac]~[unix]")
+    endif()
+    add_test(NAME ${MOCOTEST_NAME} COMMAND ${MOCOTEST_NAME} ${test_args})
+    # Default to requiring CasADi unless the caller explicitly passes REQUIRES_CASADI FALSE.
+    if(NOT DEFINED MOCOTEST_REQUIRES_CASADI)
+        set(MOCOTEST_REQUIRES_CASADI TRUE)
+    endif()
+    if(MOCOTEST_REQUIRES_CASADI AND NOT OPENSIM_WITH_CASADI)
+        set_tests_properties(${MOCOTEST_NAME} PROPERTIES DISABLED TRUE)
+    endif()
+    # Tests likely run faster if we parallelize the tests rather than the
+    # individual problems.
+    set_property(TEST ${MOCOTEST_NAME} APPEND PROPERTY
+            ENVIRONMENT "OPENSIM_MOCO_PARALLEL=0")
+    file(COPY ${MOCOTEST_RESOURCES} DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+endfunction()
+
+MocoAddTest(NAME testMocoInterface)
+
+MocoAddTest(NAME testMocoGoals)
+
+MocoAddTest(NAME testMocoParameters)
+
+MocoAddTest(NAME testMocoImplicit)
+
+MocoAddTest(NAME testMocoConstraints)
+
+MocoAddTest(NAME testMocoContact RESOURCES
+        resources/subject_20dof18musc_running.osim
+        resources/running_solution_full_stride.sto)
+
+MocoAddTest(NAME testMocoControllers)
+
+MocoAddTest(NAME testMocoActuators)
+
+MocoAddTest(NAME testMocoInverse RESOURCES
+        resources/subject_walk_armless_18musc.osim
+        resources/subject_walk_armless_coordinates.mot
+        resources/subject_walk_armless_grfs.mot
+        resources/subject_walk_armless_external_loads.xml
+        resources/std_testMocoInverse_subject_18musc_solution.sto
+        )
+
+MocoAddTest(NAME testMocoTrack RESOURCES
+        resources/walk_gait1018_subject01.osim
+        resources/walk_gait1018_state_reference.mot
+        resources/walk_gait1018_subject01_grf.xml
+        resources/walk_gait1018_subject01_grf.mot
+        resources/std_testMocoTrackGait10dof18musc_solution.sto
+        )
+
+MocoAddTest(NAME testMocoAnalytic)
+
+MocoAddTest(NAME testMocoMetabolics REQUIRES_CASADI FALSE RESOURCES
+        resources/testMocoMetabolics_hanging_muscle.osim
+        )
+
+file(COPY resources/subject_walk_armless_18musc.osim
+          resources/subject_walk_armless_coordinates.mot
+     DESTINATION "${CMAKE_BINARY_DIR}/OpenSim/Tests/Wrapping")
+
+file(COPY resources/walk_gait1018_subject01.osim
+          resources/walk_gait1018_state_reference.mot
+        DESTINATION "${CMAKE_BINARY_DIR}/OpenSim/Tests/Wrapping")

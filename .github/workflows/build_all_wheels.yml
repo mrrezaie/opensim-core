@@ -36,7 +36,7 @@ jobs:
 
     - name: Install SWIG
       run: |
-        choco install swig --version 4.1.1 --yes --limit-output --allow-downgrade
+        choco install swig --version 4.4.1 --yes --limit-output --allow-downgrade
         swig -swiglib
 
     - name: Build dependencies
@@ -106,7 +106,7 @@ jobs:
 
     - name: Install Homebrew packages
       run: |
-        brew install pkgconfig autoconf libtool automake wget pcre llvm
+        brew install pkgconfig autoconf libtool automake wget pcre llvm bison
         brew reinstall gcc
         pip3 install numpy==2.4.2
         pip3 install wheel
@@ -115,9 +115,9 @@ jobs:
     - name: Install SWIG
       run: |
         mkdir ~/swig-source && cd ~/swig-source
-        wget https://github.com/swig/swig/archive/refs/tags/v4.1.1.tar.gz
-        tar xzf v4.1.1.tar.gz && cd swig-4.1.1
-        sh autogen.sh && ./configure --prefix=$HOME/swig --disable-ccache
+        wget https://github.com/swig/swig/archive/refs/tags/v4.4.1.tar.gz
+        tar xzf v4.4.1.tar.gz && cd swig-4.4.1
+        sh autogen.sh && BISON="$(brew --prefix bison)/bin/bison" ./configure --prefix=$HOME/swig --disable-ccache
         make && make -j4 install
 
     - name: Build dependencies
@@ -211,14 +211,6 @@ jobs:
         gzip \
         patchelf
 
-    - name: Install SWIG
-      run: |
-        mkdir ~/swig-source && cd ~/swig-source
-        wget https://github.com/swig/swig/archive/refs/tags/v4.1.1.tar.gz
-        tar xzf v4.1.1.tar.gz && cd swig-4.1.1
-        sh autogen.sh && ./configure --prefix=$HOME/swig --disable-ccache
-        make && make -j4 install
-
     - name: Mark workspace as safe for git (manylinux container)
       run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -234,8 +226,6 @@ jobs:
       id: configure
       run: |
         cmake -S $GITHUB_WORKSPACE --preset wheels-make-linux-release -LAH \
-            -DSWIG_DIR=$HOME/swig/share/swig \
-            -DSWIG_EXECUTABLE=$HOME/swig/bin/swig \
             -DPython3_EXECUTABLE=$PY
 
         VERSION=`cmake -N -L $GITHUB_WORKSPACE/build/wheels-make-linux-release | grep OPENSIM_QUALIFIED_VERSION | cut -d "=" -f2`

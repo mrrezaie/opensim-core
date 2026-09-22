@@ -36,6 +36,25 @@ the model's topology (e.g., `GeometryPath`) or via a user-defined list of coordi
 - Updated to `ezc3d` version 1.7.2 which offers a bunch a new features, but more importantly some bug fixes since the last used version.
 - `PolynomialPathFitter` now detects which coordinates should belong to a path based on the model topology by finding the joints that lie between the path's origin and insertion, and computes moment arms only for these coordinates.
 The property `moment_arm_threshold` has been removed, and the methods `get/setMomentArmThreshold()` have been deprecated. (#4352)
+- Added the property `use_warm_start` and accessors `set/getWarmStart()` in `Scholz2015GeometryPath` to enable toggling on and off warm starts, where the wrapping solver from the previous time step is an initial guess for the path at the next time step. Now, `Scholz2015GeometryPath` by default has warm starts disabled meaning that paths are always computed from wrap obstacle contact hints (previously, warm starts were always enabled). (#4342)
+- The `Vec` element-by-element constructor function now only accepts the correct
+  number of elements (e.g. 2 elements for a `Vec2`, 3 for `Vec3`; #4416).
+- The `OpenSim/Common/Detail/` directory is now copied during installation. Fixes build failures related to compilation units
+  not finding the enclosed header files. (#4434)
+- `AbstractGeometryPath` now has a private `forEachDecorativePathPoint` virtual function and
+  corresponding `generateDecorations` (overridable) implementation, which simplifies concrete
+  path implementations (e.g. `GeometryPath`, `Scholz2015GeometryPath`) so that they only need
+  to produce points, rather than decorations (#4286).
+- `ModelDisplayHints` now has `discretize_path` and `num_samples_per_wrap_segment` properties, which
+  constrains the decoration-generation behavior of some path implementations (for now, `Scholz2015GeometryPath`)
+  to generating a constant number of decorations. This can be useful for renderers that benefit from
+  a fixed scene graph (#4286).
+- The `ModelScaler` tool was refactored from the legacy property system (`PropertyDblArray`,
+  `PropertyStr`) to the newer `Property<T>` system (#4438).
+- Fixed the Ipopt plugin failing to load in the macOS Python wheels. `libipopt` and `libcoinmumps`
+  referenced `libgfortran`/`libquadmath` by the absolute path those libraries had on the build
+  machine, so `MocoStudy.solve()` failed with "Plugin 'ipopt' is not found" on any macOS machine
+  without GCC installed at that prefix (#4447).
 
 
 v4.6
