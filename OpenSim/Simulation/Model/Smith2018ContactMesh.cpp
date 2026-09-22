@@ -27,7 +27,8 @@
 #include "OpenSim/Simulation/Model/Model.h"
 #include <OpenSim/Simulation/Model/PhysicalOffsetFrame.h>
 #include "OpenSim/JAM/JAMUtilities.h"
- //#include "simmath/internal/common.h"
+#include <OpenSim/Common/PropertyStr.h>
+//#include "simmath/internal/common.h"
 //#include "simmath/LinearAlgebra.h"
 //#include "simmath/internal/ContactGeometry.h"
 //#include "simmath/internal/OrientedBoundingBox.h"
