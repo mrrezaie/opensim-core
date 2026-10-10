@@ -71,14 +71,10 @@ namespace {
         //Storage stdForces1("std_arm26_"+muscName+"_SO_force.sto");
 
         CHECK_STORAGE_AGAINST_STANDARD(activations1, stdActivations1,
-                                    std::vector<double>(6, actTol),
-                                    __FILE__, __LINE__,
-                                    "Arm26 activations "+muscName+" failed");
+                                    std::vector<double>(6, actTol));
 
         CHECK_STORAGE_AGAINST_STANDARD(forces1, stdForces1,
-                                    std::vector<double>(6, forceTol),
-                                    __FILE__, __LINE__,
-                                    "Arm26 forces "+muscName+" failed.");
+                                    std::vector<double>(6, forceTol));
 
 
         AnalyzeTool analyze2("arm26_bounds_Setup_StaticOptimization.xml");
@@ -97,14 +93,10 @@ namespace {
         //Storage stdForces2("std_arm26_bounds_"+muscName+"_SO_force.sto");
 
         CHECK_STORAGE_AGAINST_STANDARD(activations2, stdActivations2,
-            std::vector<double>(6, actTol),
-            __FILE__, __LINE__,
-            "Arm26 activation "+muscName+" with bounds failed.");
+            std::vector<double>(6, actTol));
 
         CHECK_STORAGE_AGAINST_STANDARD(forces2, stdForces2,
-            std::vector<double>(6, forceTol),
-            __FILE__,  __LINE__,
-            "Arm26 forces "+muscName+" with bounds failed.");
+            std::vector<double>(6, forceTol));
     }
 }
 
@@ -138,14 +130,10 @@ TEST_CASE("testModelWithPassiveForces") {
     Storage stdForces("std_walk_subject01_ankle_spring_StaticOptimization_force.sto");
 
     CHECK_STORAGE_AGAINST_STANDARD(activations, stdActivations,
-        std::vector<double>(28, 0.025),
-        __FILE__, __LINE__,
-        "ModelWithPassiveForces activations failed");
+        std::vector<double>(28, 0.025));
 
     CHECK_STORAGE_AGAINST_STANDARD(forces, stdForces,
-        std::vector<double>(48, 3),
-        __FILE__, __LINE__,
-        "ModelWithPassiveForces forces failed.");
+        std::vector<double>(48, 3));
     cout << resultsDir << ": test ModelWithPassiveForces passed." << endl;
 
 }
@@ -187,13 +175,13 @@ TEST_CASE("testArm26DisabledMuscles") {
     model.updComponent<Actuator>("/forceset/TRImed").set_appliesForce(false);
     analyze.run();
     Storage activations(analyze.getResultsDir() + "/arm26_StaticOptimization_activation.sto");
-    ASSERT_EQUAL(activations.getColumnLabels().size(), 5);
-    ASSERT_EQUAL(activations.getColumnLabels().findIndex("TRIlat"), -1);
-    ASSERT_EQUAL(activations.getColumnLabels().findIndex("TRImed"), -1);
+    OpenSim_CHECK_EQUAL(activations.getColumnLabels().size(), 5);
+    OpenSim_CHECK_EQUAL(activations.getColumnLabels().findIndex("TRIlat"), -1);
+    OpenSim_CHECK_EQUAL(activations.getColumnLabels().findIndex("TRImed"), -1);
     Storage forces(analyze.getResultsDir() + "/arm26_StaticOptimization_force.sto");
-    ASSERT_EQUAL(forces.getColumnLabels().size(), 5);
-    ASSERT_EQUAL(forces.getColumnLabels().findIndex("TRIlat"), -1);
-    ASSERT_EQUAL(forces.getColumnLabels().findIndex("TRImed"), -1);
+    OpenSim_CHECK_EQUAL(forces.getColumnLabels().size(), 5);
+    OpenSim_CHECK_EQUAL(forces.getColumnLabels().findIndex("TRIlat"), -1);
+    OpenSim_CHECK_EQUAL(forces.getColumnLabels().findIndex("TRImed"), -1);
 
     // Ensure time values in the stored state derivatives match the times in the state
     StaticOptimization& statOpt =(StaticOptimization&)model.getAnalysisSet().get("StaticOptimization");
@@ -203,6 +191,6 @@ TEST_CASE("testArm26DisabledMuscles") {
     Array<double> time_d;
     int nt = statesStore->getTimeColumn(time);
     int nt_d = statesDerivativeStore->getTimeColumn(time_d);
-    ASSERT_EQUAL(nt, nt_d);
-    ASSERT_EQUAL<Array<double>>(time, time_d, std::numeric_limits<double>::epsilon());
+    OpenSim_CHECK_EQUAL(nt, nt_d);
+    OpenSim_CHECK_EQUAL(time, time_d, std::numeric_limits<double>::epsilon());
 }

@@ -122,7 +122,7 @@ namespace {
             catch (const MuscleCannotEquilibrate& x) {
                 // Write out the muscle equilibrium for error as a function of
                 // fiber-length.
-                reportTendonAndFiberForcesAcrossFiberLengths(muscle, s);
+                OpenSim::Testing::reportTendonAndFiberForcesAcrossFiberLengths(muscle, s);
                 throw x;
             }
             model.realizeDynamics(s);
@@ -156,19 +156,16 @@ namespace {
             tf = muscle.getTendonForce(s);
 
             // equilibrium demands tendon and muscle fiber are equivalent
-            ASSERT_EQUAL<double>(tf, mf, equilTol);
+            OpenSim_CHECK_EQUAL(tf, mf, equilTol);
             // Verify that the current computed and AnalyzeTool reported force are
             // equivalent for the provided motion file
             cout << s.getTime() << " :: muscle-fiber-force: " << mf <<
                 " Analyze reported force: " << forces[int(i)] << endl;
-            ASSERT_EQUAL<double>(mf, forces[int(i)], equilTol, __FILE__, __LINE__,
-                "Total fiber force failed to match reported muscle force.");
+            OpenSim_CHECK_EQUAL(mf, forces[int(i)], equilTol);
 
             cout << s.getTime() << " :: tendon-force: " << tf <<
                 " Analyze Output reported: " << tf_output[int(i)] << endl;
-            ASSERT_EQUAL<double>(tf, tf_output[int(i)], equilTol,
-                __FILE__, __LINE__,
-                "Output reported muscle-tendon force failed to match computed.");
+            OpenSim_CHECK_EQUAL(tf, tf_output[int(i)], equilTol);
 
             double delta = (i > 0) ? abs(forces[int(i)]-forces[int(i-1)]) : 0;
 
@@ -200,8 +197,7 @@ TEST_CASE("testTutorialOne") {
     Storage resultFiberLength("testPlotterTool/BothLegs__FiberLength.sto");
     Storage standardFiberLength("std_BothLegs_fiberLength.sto");
     CHECK_STORAGE_AGAINST_STANDARD(resultFiberLength, standardFiberLength,
-        std::vector<double>(100, 0.0001), __FILE__, __LINE__,
-        "testAnalyzeTutorialOne failed");
+        std::vector<double>(100, 0.0001));
     // const Model& mdl = analyze1.getModel();
     //mdl.updMultibodySystem()
     analyze1.setStatesFileName("plotterGeneratedStatesHip45.sto");
@@ -211,8 +207,7 @@ TEST_CASE("testTutorialOne") {
     Storage resultFiberLengthHip45("testPlotterTool/BothLegsHip45__FiberLength.sto");
     Storage standardFiberLength45("std_BothLegsHip45__FiberLength.sto");
     CHECK_STORAGE_AGAINST_STANDARD(resultFiberLengthHip45,
-        standardFiberLength45, std::vector<double>(100, 0.0001),
-        __FILE__, __LINE__, "testAnalyzeTutorialOne at Hip45 failed");
+        standardFiberLength45, std::vector<double>(100, 0.0001));
     cout << "testAnalyzeTutorialOne passed" << endl;
 }
 
@@ -234,7 +229,7 @@ TEST_CASE("testActuationAnalysisWithDisabledForce") {
 
     // Let's also check that the number of columns is correct (i.e.,
     // (number of muscles in the model) - 1).
-    ASSERT_EQUAL(model.getMuscles().getSize() - 1,
+    OpenSim_CHECK_EQUAL(model.getMuscles().getSize() - 1,
             (int)act_force_table.getNumColumns());
 }
 
@@ -299,17 +294,18 @@ TEST_CASE("testBodyKinematics") {
     // with the body X. Also note that local results are printed in degrees,
     // and ground results are printed in radians.
     double tol = 1e-6;
-    ASSERT_EQUAL<double>(localVelOx.getLast(), speedRot * SimTK_RADIAN_TO_DEGREE, tol);
-    ASSERT_EQUAL<double>(localVelOz.getLast(), 0, tol);
-    ASSERT_EQUAL<double>(groundVelOx.getLast(), 0, tol);
-    ASSERT_EQUAL<double>(groundVelOz.getLast(), speedRot, tol);
+    OpenSim_CHECK_EQUAL(localVelOx.getLast(),
+        static_cast<double>(speedRot * SimTK_RADIAN_TO_DEGREE), tol);
+    OpenSim_CHECK_EQUAL(localVelOz.getLast(), 0.0, tol);
+    OpenSim_CHECK_EQUAL(groundVelOx.getLast(), 0.0, tol);
+    OpenSim_CHECK_EQUAL(groundVelOz.getLast(), speedRot, tol);
 
     Array<double> groundPosX, groundPosY;
     Storage groundPos("_BodyKinematics_ground_pos_global.sto");
     groundPos.getDataColumn("body_X", groundPosX);
     groundPos.getDataColumn("body_Y", groundPosY);
-    ASSERT_EQUAL<double>(groundPosX.getLast(), speedX * duration, tol);
-    ASSERT_EQUAL<double>(groundPosY.getLast(), speedY * duration, tol);
+    OpenSim_CHECK_EQUAL(groundPosX.getLast(), speedX * duration, tol);
+    OpenSim_CHECK_EQUAL(groundPosY.getLast(), speedY * duration, tol);
 }
 
 TEST_CASE("testIMUDataReporter") {
@@ -355,8 +351,8 @@ TEST_CASE("testIMUDataReporter") {
             imuDataReporter->getOrientationsTable();
     int angNr = int(angVelTable.getNumRows());
     for (int row = 0; row < angNr; ++row) {
-        ASSERT_EQUAL<double>(angVelTable.getMatrix()[row][0].norm(), 0., 1e-7);
-        ASSERT_EQUAL<double>(angVelTable.getMatrix()[row][1].norm(), 0., 1e-7);
+        OpenSim_CHECK_EQUAL(angVelTable.getMatrix()[row][0].norm(), 0., 1e-7);
+        OpenSim_CHECK_EQUAL(angVelTable.getMatrix()[row][1].norm(), 0., 1e-7);
     }
     // Now allow pendulum to drop under gravity from horizontal
     bodyKinematics->getPositionStorage()->purge();
@@ -378,8 +374,8 @@ TEST_CASE("testIMUDataReporter") {
                     SimTK::Rotation(orientationTableIMU.getRowAtIndex(row)[b])
                             .convertRotationToBodyFixedXYZ();
             SimTK::Vec3 fromBodyKinRotations = SimTK::Vec3(&fromBodyKin[b * 6 + 3]);
-            ASSERT_EQUAL<double>(
-                    (bodyFixedRotations - fromBodyKinRotations).norm(), 0.0, 1e-7);
+            OpenSim_CHECK_EQUAL(
+                (bodyFixedRotations - fromBodyKinRotations).norm(), 0.0, 1e-7);
         }
     }
     /* Attempt to compare to createSyntheticIMUAccelerationSignals */
@@ -394,7 +390,7 @@ TEST_CASE("testIMUDataReporter") {
     auto diff = (accelTableFromUtility.getMatrix() -
                  imuDataReporter->getAccelerometerSignalsTable().getMatrix());
     auto elemSum = diff.colSum().rowSum().norm();
-    ASSERT_EQUAL<double>(elemSum, 0.0, 1e-5);
+    OpenSim_CHECK_EQUAL(elemSum, 0.0, 1e-5);
 
     // Now test AnalyzeTool workflow
     AnalyzeTool analyzeIMU;
@@ -542,10 +538,10 @@ TEST_CASE("testMuscleAnalysisSerialization") {
     m.setComputeMoments(true);
     m.print("manalysis.xml");
     MuscleAnalysis roundTrip("manalysis.xml");
-    ASSERT(roundTrip.getComputeMoments());
+    OPENSIM_ASSERT_ALWAYS(roundTrip.getComputeMoments());
     m.setComputeMoments(false);
     m.print("manalysis.xml");
     // Check deserialization and copying
     roundTrip = MuscleAnalysis("manalysis.xml");
-    ASSERT(!roundTrip.getComputeMoments());
+    OPENSIM_ASSERT_ALWAYS(!roundTrip.getComputeMoments());
 }

@@ -155,7 +155,8 @@ TEST_CASE("testControlSetControllerOnBlock") {
 
     si.getQ().dump("Final position:");
     double x_err = fabs(coordinates[0].getValue(si) - 0.5*(controlForce[0]/blockMass)*finalTime*finalTime);
-    ASSERT(x_err <= accuracy, __FILE__, __LINE__, "ControlSetControllerOnBlock failed to produce the expected motion.");
+    OPENSIM_ASSERT_ALWAYS(x_err <= accuracy &&
+            "failed to produce the expected motion.");
 
     // Save the simulation results
     Storage states(manager.getStateStorage());
@@ -226,7 +227,7 @@ TEST_CASE("testPrescribedControllerOnBlock") {
     Model modelFromFile("blockWithPrescribedController.osim");
 
     // Verify that serialization and then deserialization is correct
-    ASSERT(osimModel == modelFromFile);
+    OPENSIM_ASSERT_ALWAYS(osimModel == modelFromFile);
 
     // Initialize the system and get the state representing the state system
     SimTK::State& si = osimModel.initSystem();
@@ -250,9 +251,7 @@ TEST_CASE("testPrescribedControllerOnBlock") {
     si.getQ().dump("Final position:");
 
     double expected = enabled ? 0.5*(controlForce/blockMass)*finalTime*finalTime : 0;
-    ASSERT_EQUAL(expected, coordinates[0].getValue(si), accuracy,
-        __FILE__, __LINE__, 
-        "PrescribedController failed to produce the expected motion of block.");
+    OpenSim_CHECK_EQUAL(expected, coordinates[0].getValue(si), accuracy);
 
     // Save the simulation results
     Storage states(manager.getStateStorage());
@@ -403,12 +402,10 @@ TEST_CASE("testPrescribedControllerFromFile") {
     /*int ncontrols = */osimModel.getNumControls();
 
     CHECK_STORAGE_AGAINST_STANDARD(states, std_states, 
-        std::vector<double>(nstates, 0.005), __FILE__, __LINE__,
-        "testPrescribedControllerFromFile '"+modelName+"'states failed");
+        std::vector<double>(nstates, 0.005));
 
     CHECK_STORAGE_AGAINST_STANDARD(controls, std_controls, 
-        std::vector<double>(nstates, 0.015), __FILE__, __LINE__,
-        "testPrescribedControllerFromFile '"+modelName+"'controls failed");
+        std::vector<double>(nstates, 0.015));
      
     osimModel.disownAllComponents();
 }

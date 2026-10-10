@@ -156,9 +156,9 @@ void testVisModel(Model& model, const std::string standard_filename)
         std::cout << "Continuing..." << std::endl;
     }
 
-    ASSERT(same == 0, __FILE__, __LINE__, 
-        "Visualization primitives from model do not match standard from file `"
-        + standard_filename + "'.");
+    OPENSIM_THROW_IF(same != 0, OpenSim::Exception,
+            "Visualization primitives from model do not match standard from "
+            "file `" + standard_filename + "'.");
 }
 
 Model createModel4AppearanceTest()
