@@ -25,37 +25,18 @@
 #include <OpenSim/Simulation/Model/AnalysisSet.h>
 #include <OpenSim/Tools/CMCTool.h>
 #include <OpenSim/Tools/ForwardTool.h>
-#include <OpenSim/Auxiliary/auxiliaryTestFunctions.h>
+
+#include <tests/Testing.h>
+
+#include <catch2/catch_all.hpp>
 
 using namespace OpenSim;
 using namespace std;
 
-void testGait2354();
-
-int main() {
+TEST_CASE("testGait2354") {
     Object::renameType("Thelen2003Muscle", "Thelen2003Muscle_Deprecated");
     //Object::renameType("Thelen2003Muscle", "Millard2012AccelerationMuscle");
     //Object::renameType("Thelen2003Muscle", "Millard2012EquilibriumMuscle");
-    SimTK::Array_<std::string> failures;
-
-    try {testGait2354();}
-    catch (const std::exception& e)
-        {  cout << e.what() <<endl; failures.push_back("testGait2354"); }
-
-    if (!failures.empty()) {
-        cout << "Done, with failure(s): " << failures << endl;
-        return 1;
-    }
-
-    cout << "Done" << endl;
-
-    return 0;
-}
-
-void testGait2354() {
-    cout<<"\n******************************************************************" << endl;
-    cout << "*                          testGait2354                          *" << endl;
-    cout << "******************************************************************\n" << endl;
 
     CMCTool cmc("subject01_Setup_CMC.xml");
     cmc.run();
@@ -71,8 +52,7 @@ void testGait2354() {
     rms_tols[4] = 0.005;
     rms_tols[5] = 0.005;
 
-    CHECK_STORAGE_AGAINST_STANDARD(results, standard, rms_tols,
-        __FILE__, __LINE__, "testGait2354 tracking failed");
+    CHECK_STORAGE_AGAINST_STANDARD(results, standard, rms_tols);
 
     Storage results2("subject01_ResultsCMC/subject01_walk1_states.sto");
     Storage standard2("std_subject01_walk1_states_WithControlConstraints.sto");
@@ -85,8 +65,5 @@ void testGait2354() {
         rms_tols2[2*i+1] = 0.25; // velocities rad/s
     }
 
-    CHECK_STORAGE_AGAINST_STANDARD(results2, standard2, rms_tols2,
-        __FILE__, __LINE__, "testGait2354 states failed");
-
-    cout << "\n testGait2354 passed\n" << endl;
+    CHECK_STORAGE_AGAINST_STANDARD(results2, standard2, rms_tols2);
 }

@@ -25,39 +25,20 @@
 #include <OpenSim/Simulation/Model/AnalysisSet.h>
 #include <OpenSim/Tools/CMCTool.h>
 #include <OpenSim/Tools/ForwardTool.h>
-#include <OpenSim/Auxiliary/auxiliaryTestFunctions.h>
+
+#include <tests/Testing.h>
+
+#include <catch2/catch_all.hpp>
 
 using namespace OpenSim;
 using namespace std;
 
-void testRunningModel();
 
-int main() {
-
+TEST_CASE("testRunningModel") {
     Object::renameType("Thelen2003Muscle", "Thelen2003Muscle_Deprecated");
     //Object::renameType("Thelen2003Muscle", "Millard2012AccelerationMuscle");
     //Object::renameType("Thelen2003Muscle", "Millard2012EquilibriumMuscle");
-    SimTK::Array_<std::string> failures;
 
-    try {testRunningModel();}
-    catch (const std::exception& e)
-        {  cout << e.what() <<endl; failures.push_back("testRunningModel"); }
-
-    if (!failures.empty()) {
-        cout << "Done, with failure(s): " << failures << endl;
-        return 1;
-    }
-
-    cout << "Done" << endl;
-
-    return 0;
-}
-
-void testRunningModel()
-{
-    cout<<"\n******************************************************************" << endl;
-    cout << "*                     testRunningModel                     *" << endl;
-    cout << "******************************************************************\n" << endl;
     CMCTool cmc("runningModel_Setup_CMC_test.xml");
     cmc.run();
 
@@ -72,8 +53,7 @@ void testRunningModel()
     rms_tols[4] = 0.0025;
     rms_tols[5] = 0.0025;
 
-    CHECK_STORAGE_AGAINST_STANDARD(results, standard, rms_tols, __FILE__, __LINE__,
-        "testRunningModel tracking failed");
+    CHECK_STORAGE_AGAINST_STANDARD(results, standard, rms_tols);
 
     Storage results_states("runningModel_CMC_Results/runningModel_CMC_test_states.sto");
     Storage standard_states("std_runningModel_CMC_states.sto");
@@ -87,8 +67,7 @@ void testRunningModel()
         rms_states_tols[i] = 0.2; // velocities
     }
 
-    CHECK_STORAGE_AGAINST_STANDARD(results_states, standard_states, rms_states_tols,
-        __FILE__, __LINE__, "testRunningModel activations failed");
+    CHECK_STORAGE_AGAINST_STANDARD(results_states, standard_states, rms_states_tols);
 
     cout << "\n testRunningModel passed\n" << endl;
 }

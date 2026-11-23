@@ -37,7 +37,30 @@ the model's topology (e.g., `GeometryPath`) or via a user-defined list of coordi
 - `PolynomialPathFitter` now detects which coordinates should belong to a path based on the model topology by finding the joints that lie between the path's origin and insertion, and computes moment arms only for these coordinates.
 The property `moment_arm_threshold` has been removed, and the methods `get/setMomentArmThreshold()` have been deprecated. (#4352)
 - Added the property `use_warm_start` and accessors `set/getWarmStart()` in `Scholz2015GeometryPath` to enable toggling on and off warm starts, where the wrapping solver from the previous time step is an initial guess for the path at the next time step. Now, `Scholz2015GeometryPath` by default has warm starts disabled meaning that paths are always computed from wrap obstacle contact hints (previously, warm starts were always enabled). (#4342)
-
+- The `Vec` element-by-element constructor function now only accepts the correct
+  number of elements (e.g. 2 elements for a `Vec2`, 3 for `Vec3`; #4416).
+- The `OpenSim/Common/Detail/` directory is now copied during installation. Fixes build failures related to compilation units
+  not finding the enclosed header files. (#4434)
+- `AbstractGeometryPath` now has a private `forEachDecorativePathPoint` virtual function and
+  corresponding `generateDecorations` (overridable) implementation, which simplifies concrete
+  path implementations (e.g. `GeometryPath`, `Scholz2015GeometryPath`) so that they only need
+  to produce points, rather than decorations (#4286).
+- `ModelDisplayHints` now has `discretize_path` and `num_samples_per_wrap_segment` properties, which
+  constrains the decoration-generation behavior of some path implementations (for now, `Scholz2015GeometryPath`)
+  to generating a constant number of decorations. This can be useful for renderers that benefit from
+  a fixed scene graph (#4286).
+- The `ModelScaler` tool was refactored from the legacy property system (`PropertyDblArray`,
+  `PropertyStr`) to the newer `Property<T>` system (#4438).
+- Fixed the Ipopt plugin failing to load in the macOS Python wheels. `libipopt` and `libcoinmumps`
+  referenced `libgfortran`/`libquadmath` by the absolute path those libraries had on the build
+  machine, so `MocoStudy.solve()` failed with "Plugin 'ipopt' is not found" on any macOS machine
+  without GCC installed at that prefix (#4447).
+- Added the `mirror_axis` property to `EllipsoidJoint`, which mirrors the joint about the plane normal to the given axis ('x', 'y', or 'z') of the parent frame. This is useful for constructing a left-side joint from the description of its right-side counterpart (or vice versa). (#4475)
+- Fixed several discarded calls to `SimTK::Vec3::normalize()`, which returns a normalized copy rather than normalizing in place and so had no effect. `CustomJoint` kinematics may change slightly for models read from the pre-4.0 `TransformAxis` format, and `CMC_Task::setDirection_0()`/`setDirection_1()` now normalize their argument as documented. (#4475)
+- Added `TableUtilities::findNonFiniteElements()` and `TableUtilities::hampel()` for locating the non-finite and outlying elements of a `TimeSeriesTable`, and `DataTable::removeRows()` for removing a set of rows simultaneously. (#4477)
+- `PolynomialPathFitter` now screens the sampled path lengths and moment arms for non-finite values and for outliers, applying a Hampel filter to the samples drawn around each time point, replacing the inconsistent standard deviation approach. In addition, samples near coordinate bounds are now reflected back into the acceptable range, avoiding unnecessary sample rejection by the Hampel filter. (#4478)
+- `PolynomialPathFitter` now distributes coordinate sampling and polynomial fitting across threads using an atomic work index rather than dividing the work into fixed contiguous blocks to better load balance work. (#4479)
+- Fixed a bug where changes to the parent-frame location of a `PathWrapPoint` parent-frame did not invalidate the point's ground-frame location stored in the `Point` cache. This fixes an issue where a `GeometryPath` with two or more wrapping obstacles could produce moment arms about unexpected coordinates (e.g., pelvis rotational coordinates) due to outdated path point position information. Note: this change also fixes related issues with path length calculations, so muscle paths with two or more wrapping obstacles may see small changes in length. (#4485)
 
 v4.6
 ====

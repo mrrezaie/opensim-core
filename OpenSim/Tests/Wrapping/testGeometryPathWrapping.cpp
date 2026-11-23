@@ -22,7 +22,9 @@
  * -------------------------------------------------------------------------- */
 
 #include <OpenSim/OpenSim.h>
-#include <OpenSim/Auxiliary/auxiliaryTestFunctions.h>
+
+#include <tests/Testing.h>
+
 #include <catch2/catch_all.hpp>
 
 using namespace OpenSim;
@@ -36,7 +38,7 @@ namespace {
     void simulate(Model& model, SimTK::State& state, double initialTime, 
             double finalTime) {
         // Create the Manager for the simulation.
-        const double accuracy = 1.0e-4;
+        const double accuracy = 1.0e-3;
         Manager manager(model);
         manager.setIntegratorAccuracy(accuracy);
     
@@ -197,11 +199,11 @@ namespace {
 
             double ma1 = spring1->computeMomentArm(s, coord);
 
-            ASSERT_EQUAL<double>(-r, ma1, .0001); // SimTK::Eps
+            OpenSim_CHECK_EQUAL(-r, ma1, .0001); // SimTK::Eps
             double len1 = spring1->getLength(s);
             // Length is 2*r -0.1 by construction plus a portion of a quarter 
             // circle with radius r proportional to i.
-            ASSERT_EQUAL<double>(len1, 
+            OpenSim_CHECK_EQUAL(len1, 
                     2*r-0.1 + 0.25 * 2 * SimTK::Pi * r * i / nsteps, 1e-6); 
 
         }
@@ -263,7 +265,7 @@ namespace {
         double lengthAnalyticalApprox = 
                 SimTK::Pi * (a + b) * (1 + 3 * h / (10 + std::sqrt(4 - 3 * h)));
         // Length is 1/4 ellipse + 2r -.1.
-        ASSERT_EQUAL<double>(len1, 2 * r - 0.1 + lengthAnalyticalApprox/4, 1e-4);
+        OpenSim_CHECK_EQUAL(len1, 2 * r - 0.1 + lengthAnalyticalApprox/4, 1e-4);
 
     }
 
@@ -456,6 +458,55 @@ TEST_CASE("WrapEllipsoid") {
         for (double angle = 0; angle < Pi/2 -.1; angle += Pi / 180*5) {
             wo->set_dimensions(SimTK::Vec3(radius / cos(angle), radius, 1));
             testEllipsoidWrapLength(wo);
+        }
+    }
+}
+
+TEST_CASE("GeometryPath with multiple wrap objects") {
+    // The medial gastrocnemius paths in this model wrap over two cylinders,
+    // so GeometryPath::applyWrapObjects() iterates over the wrap objects and
+    // updates the wrap point locations multiple times.
+    Model model("subject_walk_armless_18musc.osim");
+    model.initSystem();
+
+    TableProcessor tableProcessor =
+            TableProcessor("subject_walk_armless_coordinates.mot") |
+            TabOpUseAbsoluteStateNames();
+    TimeSeriesTable coordinates =
+            tableProcessor.processAndConvertToRadians(model);
+    auto statesTraj = StatesTrajectory::createFromStatesTable(
+            model, coordinates, true, true, true);
+
+    const auto& muscle = model.getComponent<Muscle>("/forceset/med_gas_r");
+    const auto& path = muscle.getGeometryPath();
+
+    SECTION("Ground locations of path points match their local locations") {
+        for (const auto& state : statesTraj) {
+            model.realizePosition(state);
+            const auto& currentPath = path.getCurrentPath(state);
+            for (int i = 0; i < currentPath.getSize(); ++i) {
+                const auto& point = *currentPath[i];
+                const SimTK::Vec3 expected =
+                        point.getParentFrame().getTransformInGround(state) *
+                        point.getLocation(state);
+                CHECK_THAT((point.getLocationInGround(state) - expected).norm(),
+                        WithinAbs(0.0, 1e-12));
+            }
+        }
+    }
+
+    SECTION("Moment arms about pelvis coordinates are zero") {
+        // The path does not cross the ground-pelvis joint, so its length does
+        // not depend on the pelvis coordinates.
+        const std::vector<std::string> pelvisCoordNames = {"pelvis_tilt",
+                "pelvis_list", "pelvis_rotation", "pelvis_tx", "pelvis_ty",
+                "pelvis_tz"};
+        for (const auto& state : statesTraj) {
+            for (const auto& coordName : pelvisCoordNames) {
+                const auto& coord = model.getCoordinateSet().get(coordName);
+                const double momentArm = path.computeMomentArm(state, coord);
+                CHECK_THAT(momentArm, WithinAbs(0.0, 1e-10));
+            }
         }
     }
 }

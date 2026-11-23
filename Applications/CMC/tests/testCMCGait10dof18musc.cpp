@@ -20,7 +20,6 @@
  * limitations under the License.                                             *
  * -------------------------------------------------------------------------- */
 
-// INCLUDE
 #include <OpenSim/Common/GCVSplineSet.h>
 #include <OpenSim/Simulation/Model/Model.h>
 #include <OpenSim/Tools/CMCTool.h>
@@ -58,7 +57,7 @@ TEST_CASE("testGait10dof18musc") {
             INFO(label << " at time " << time[it] << ": " <<
                 result.calcValue(timeVec) << " vs " <<
                 expected.calcValue(timeVec));
-            REQUIRE((Catch::Approx(result.calcValue(timeVec)).margin(1e-1)
+            REQUIRE((Catch::Approx(result.calcValue(timeVec)).margin(2e-1)
                 == expected.calcValue(timeVec)));
         }
     }

@@ -11,6 +11,7 @@ Contents:
 
 - [Ways to Contribute](#ways-to-contribute)
 - [Making a Pull Request](#making-a-pull-request-pr)
+- [AI/LLM Usage Policy](#aillm-usage-policy)
 - [Writing tests with Catch2](#writing-tests-with-catch2)
 - [Running Moco tests](#running-moco-tests)
 - [Checking for Memory Leaks with LibASAN](#checking-for-memory-leaks-with-libasan)
@@ -33,7 +34,6 @@ There are lots of ways to contribute to the OpenSim project, and people with wid
     Delp SL, Anderson FC, Arnold AS, Loan P, Habib A, John CT, Guendelman E, Thelen DG (2007) OpenSim: open-source software to create and analyze dynamic simulations of movement. *IEEE Trans Biomed Eng* 54:1940–50.
 
     Seth A, Hicks JL, Uchida TK, Habib A, Dembia CL, Dunne JJ, Ong CF, DeMers MS, Rajagopal A, Millard M, Hamner SR, Arnold EM, Yong JR, Lakshmikanth SK, Sherman MA, Ku JP, Delp SL (2018) OpenSim: Simulating musculoskeletal dynamics and neuromuscular control to study human and animal movement. *PLoS Computational Biology* 14(7):e1006223.
-
 
 
 Making a Pull Request (PR)
@@ -67,6 +67,18 @@ When you are ready to make a PR, please adhere to the guidelines below.
 A few additional practices will help streamline the code review process. Please use tags (i.e., @user_name) and quoting to help keep the discussion organized. Please also call for a meeting or Skype call when discussions start to stagnate. In addition, we recommend getting input on your interface design before implementing a major new component or other change.
 
 It is important that reviewers also review the effect that your PR has on the doxygen documentation. To facilitate this, we automatically upload the doxygen documentation for each PR to [myosin.sourceforge.net](http://myosin.sourceforge.net); you can view the documentation for a specific PR at `myosin.sourceforge.net/<issue-number>`.
+
+
+AI/LLM Usage Policy
+-------------------
+Contributors to OpenSim are welcome to use Artificial Intelligence (AI) or Large Language Model (LLM) coding tools to create pull requests. However, all pull requests must be created with a human in the loop. The contributor is always the author and is fully accountable for their contributions. Contributors must be confident that their submission is high quality and worth the (limited) time of the maintainers.
+
+- You must disclose in the pull request description that you used an AI/LLM tool or model and how it was used.
+- You must review all AI/LLM-generated code, comments, and documentation before requesting a review.
+- You must answer all maintainer questions and pull request review comments yourself, without using an LLM or AI chatbot.
+
+Maintainers may close any pull requests that do not follow the guidelines above.
+
 
 Writing tests with Catch2
 -------------------------
@@ -178,13 +190,11 @@ can be used to specify platform-specific tests.
 Running Moco tests
 ------------------
 In general, Moco's tests depend on the CasADi library, whose use is determined 
-by the `OPENSIM_WITH_CASADI` and CMake variable. The CTests are designed to 
+by the `OPENSIM_WITH_CASADI` CMake variable. The CTests are designed to 
 succeed regardless of the value of the CMake variable: if `OPENSIM_WITH_CASADI` 
-is off, Moco's C++ tests are run with arguments `"~*MocoCasADiSolver*" "~[casadi]"`, 
-which excludes Catch2 templatized tests using MocoCasADiSolver and other tests that 
-are tagged as relying on CasADi. If the test executables are run without CTest (e.g., 
-debugging a project in Visual Studio), the tests will fail if `OPENSIM_WITH_CASADI` is 
-false; for the tests to pass, provide the argument `"~*MocoCasADiSolver*" "~[casadi]"`.
+is off, the Moco tests that rely on CasADi are marked `DISABLED` and are skipped 
+by CTest. If those test executables are run without CTest (e.g., debugging a 
+project in Visual Studio), they will fail when `OPENSIM_WITH_CASADI` is false.
 
 Building GUI
 -------------

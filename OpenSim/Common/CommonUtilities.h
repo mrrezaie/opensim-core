@@ -23,8 +23,14 @@
  * limitations under the License.                                             *
  * -------------------------------------------------------------------------- */
 
-#include "osimCommonDLL.h"
 #include "Assertion.h"
+#include "osimCommonDLL.h"
+
+#include <OpenSim/Common/Property.h>
+
+#include <SimTKcommon/internal/BigMatrix.h>
+#include <SimTKcommon/internal/CoordinateAxis.h>
+
 #include <algorithm>
 #include <cmath>
 #include <condition_variable>
@@ -33,11 +39,11 @@
 #include <memory>
 #include <mutex>
 #include <numeric>
+#include <optional>
 #include <stack>
+#include <string>
 #include <utility>
 #include <vector>
-
-#include <SimTKcommon/internal/BigMatrix.h>
 
 namespace OpenSim {
 
@@ -343,6 +349,34 @@ OSIMCOMMON_API double factorizeMatrixNonNegative(const SimTK::Matrix& A,
  * of `n` total elements.
  */
 OSIMCOMMON_API int choose(int n, int k);
+
+#ifndef SWIG // std::optional is not supported by the scripting interfaces.
+/// Convert a string naming a coordinate axis into a SimTK::CoordinateAxis.
+/// The string must be a single character: "x" or "X" for the X axis, "y" or
+/// "Y" for the Y axis, and "z" or "Z" for the Z axis.
+/// @returns the matching coordinate axis, or std::nullopt if `axisName` does
+///     not name a coordinate axis.
+/// @ingroup commonutil
+OSIMCOMMON_API std::optional<SimTK::CoordinateAxis> parseCoordinateAxis(
+        const std::string& axisName);
+#endif
+
+/// Convert a SimTK::CoordinateAxis into its lowercase name: "x", "y", or "z".
+/// This is the inverse of parseCoordinateAxis().
+/// @ingroup commonutil
+OSIMCOMMON_API std::string getCoordinateAxisName(SimTK::CoordinateAxis axis);
+
+namespace detail {
+/**
+ * Returns true if value is a valid name for a file.
+ */
+template <typename T> bool isValidFileName(const Property<T>& value) {
+    return false;
+}
+inline bool isValidFileName(const Property<std::string>& value) {
+    return !value.getValue().empty() && !value.getValueIsDefault();
+}
+} // namespace detail
 
 } // namespace OpenSim
 

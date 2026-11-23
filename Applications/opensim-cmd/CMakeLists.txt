@@ -9,5 +9,5 @@ OpenSimAddApplication(NAME opensim-cmd
 target_link_libraries(opensim-cmd osimdocopt osimMoco osimJAM hdf5-static hdf5_cpp-static hdf5_hl-static)
 
 if(BUILD_TESTING)
-    subdirs(test)
+    subdirs(tests)
 endif(BUILD_TESTING)
