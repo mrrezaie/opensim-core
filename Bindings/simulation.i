@@ -129,8 +129,6 @@ OpenSim::ModelComponentSet<OpenSim::Controller>;
 %include <OpenSim/Simulation/Model/ElasticFoundationForce.h>
 %include <OpenSim/Simulation/Model/HuntCrossleyForce.h>
 %include <OpenSim/Simulation/Model/SmoothSphereHalfSpaceForce.h>
-%include <OpenSim/Simulation/Model/MeyerFregly2016Force.h>
-%include <OpenSim/Simulation/Model/ExponentialContactForce.h>
 
 namespace OpenSim {
     %ignore Smith2018ContactMesh::OBBTreeNode;
@@ -163,6 +161,11 @@ namespace OpenSim {
 %template(SetMarkers) OpenSim::Set<OpenSim::Marker, OpenSim::ModelComponent>;
 %template(ModelComponentSetMarkers) OpenSim::ModelComponentSet<OpenSim::Marker>;
 %include <OpenSim/Simulation/Model/MarkerSet.h>
+
+// These contact force elements depend on Station, so we
+// need to include them after Station.
+%include <OpenSim/Simulation/Model/MeyerFregly2016Force.h>
+%include <OpenSim/Simulation/Model/ExponentialContactForce.h>
 
 // WrapObject is included up above.
 %include <OpenSim/Simulation/Wrap/WrapSphere.h>
