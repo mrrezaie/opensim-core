@@ -10,7 +10,7 @@ from pathlib import Path
 # Only when installed locally via "python -m pip install ." in Windows
 bin_path = '../../bin'
 bin_files = []
-if os.path.isfile(os.path.join(bin_path, 'opensim-cmd.exe')):
+if os.path.exists(bin_path)
     for file in os.listdir(bin_path):
         bin_files.append(os.path.join(bin_path, file).replace(os.sep,'/'))
 
@@ -20,7 +20,7 @@ geometry_files = []
 if os.path.exists(geometry_path):
     for file in os.listdir(geometry_path):
         geometry_files.append(os.path.join(geometry_path, file).replace(os.sep,'/'))
-
+        
 this_dir = Path(__file__).parent
 long_description = (this_dir / "opensim/README.md").read_text(encoding="utf-8")
 
