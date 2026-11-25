@@ -92,8 +92,8 @@ void RollingOnSurfaceConstraint::constructProperties()
 void RollingOnSurfaceConstraint::extendConnectToModel(Model& aModel)
 {
     Super::extendConnectToModel(aModel);
-    _rollingFrame = &getSocket<PhysicalFrame>("socket_rolling_body").getConnectee();
-    _surfaceFrame = &getSocket<PhysicalFrame>("socket_surface_body").getConnectee();
+    _rollingFrame = &getSocket<PhysicalFrame>("rolling_body").getConnectee();
+    _surfaceFrame = &getSocket<PhysicalFrame>("surface_body").getConnectee();
 }
 
 void RollingOnSurfaceConstraint::extendAddToSystem(SimTK::MultibodySystem& system) const
@@ -171,12 +171,12 @@ extendSetPropertiesFromState(const SimTK::State& state) {
  * Following methods set attributes of the weld constraint */
 void RollingOnSurfaceConstraint::setRollingBodyByName(const std::string& aBodyName)
 {
-    updSocket<PhysicalFrame>("socket_rolling_body").setConnecteePath(aBodyName);
+    updSocket<PhysicalFrame>("rolling_body").setConnecteePath(aBodyName);
 }
 
 void RollingOnSurfaceConstraint::setSurfaceBodyByName(const std::string& aBodyName)
 {
-    updSocket<PhysicalFrame>("socket_surface_body").setConnecteePath(aBodyName);
+    updSocket<PhysicalFrame>("surface_body").setConnecteePath(aBodyName);
 }
 
 /** Set the point of contact on the rolling body that will be in contact with the surface */
