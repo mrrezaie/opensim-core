@@ -428,7 +428,7 @@ void RollingOnSurfaceConstraint::updateFromXMLNode(SimTK::Xml::Element& aNode, i
         }
     }
 
-    Super::updateFromXMLNode(aNode, versionNumber);
+    // Super::updateFromXMLNode(aNode, versionNumber);
 }
 
 bool
