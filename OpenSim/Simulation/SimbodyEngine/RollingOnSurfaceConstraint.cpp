@@ -435,9 +435,9 @@ void RollingOnSurfaceConstraint::updateFromXMLNode(SimTK::Xml::Element& aNode, i
             body2Element->getValueAs<std::string>(body2_name);
 
             XMLDocument::addConnector(aNode, "Connector_PhysicalFrame_",
-                    "rolling_body", body1_name);
+                    "socket_rolling_body", body1_name);
             XMLDocument::addConnector(aNode, "Connector_PhysicalFrame_",
-                    "surface_body", body2_name);
+                    "socket_surface_body", body2_name);
         }
     }
 
