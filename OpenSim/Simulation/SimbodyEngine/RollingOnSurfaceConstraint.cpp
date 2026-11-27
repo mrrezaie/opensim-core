@@ -92,8 +92,8 @@ void RollingOnSurfaceConstraint::constructProperties()
 void RollingOnSurfaceConstraint::extendConnectToModel(Model& aModel)
 {
     Super::extendConnectToModel(aModel);
-    _rollingFrame = &getSocket<PhysicalFrame>("rolling_body").getConnectee();
-    _surfaceFrame = &getSocket<PhysicalFrame>("surface_body").getConnectee();
+    _rollingFrame = &getSocket<PhysicalFrame>("socket_rolling_body").getConnectee();
+    _surfaceFrame = &getSocket<PhysicalFrame>("socket_surface_body").getConnectee();
 }
 
 void RollingOnSurfaceConstraint::extendAddToSystem(SimTK::MultibodySystem& system) const
@@ -171,12 +171,12 @@ extendSetPropertiesFromState(const SimTK::State& state) {
  * Following methods set attributes of the weld constraint */
 void RollingOnSurfaceConstraint::setRollingBodyByName(const std::string& aBodyName)
 {
-    updSocket<PhysicalFrame>("rolling_body").setConnecteePath(aBodyName);
+    updSocket<PhysicalFrame>("socket_rolling_body").setConnecteePath(aBodyName);
 }
 
 void RollingOnSurfaceConstraint::setSurfaceBodyByName(const std::string& aBodyName)
 {
-    updSocket<PhysicalFrame>("surface_body").setConnecteePath(aBodyName);
+    updSocket<PhysicalFrame>("socket_surface_body").setConnecteePath(aBodyName);
 }
 
 /** Set the point of contact on the rolling body that will be in contact with the surface */
@@ -397,6 +397,20 @@ void RollingOnSurfaceConstraint::calcConstraintForces(const SimTK::State& state,
 
 void RollingOnSurfaceConstraint::updateFromXMLNode(SimTK::Xml::Element& aNode, int versionNumber)
 {
+
+    // replace old properties with latest use of Sockets
+    SimTK::Xml::element_iterator body1Element = aNode.element_begin("socket_rolling_body");
+    SimTK::Xml::element_iterator body2Element = aNode.element_begin("socket_surface_body");
+    std::string body1_name(""), body2_name("");
+
+    body1Element->getValueAs<std::string>(body1_name);
+    body2Element->getValueAs<std::string>(body2_name);
+
+    XMLDocument::addConnector(aNode, "Connector_PhysicalFrame_",
+            "socket_rolling_body", body1_name);
+    XMLDocument::addConnector(aNode, "Connector_PhysicalFrame_",
+            "socket_surface_body", body2_name);
+            
     int documentVersion = versionNumber;
     if (documentVersion < XMLDocument::getLatestVersion()){
         if (documentVersion<30500){
@@ -425,19 +439,6 @@ void RollingOnSurfaceConstraint::updateFromXMLNode(SimTK::Xml::Element& aNode, i
                     "rolling_body", body1_name);
             XMLDocument::addConnector(aNode, "Connector_PhysicalFrame_",
                     "surface_body", body2_name);
-        } else {
-            // replace old properties with latest use of Sockets
-            SimTK::Xml::element_iterator body1Element = aNode.element_begin("socket_rolling_body");
-            SimTK::Xml::element_iterator body2Element = aNode.element_begin("socket_surface_body");
-            std::string body1_name(""), body2_name("");
-
-            body1Element->getValueAs<std::string>(body1_name);
-            body2Element->getValueAs<std::string>(body2_name);
-
-            XMLDocument::addConnector(aNode, "Connector_PhysicalFrame_",
-                    "socket_rolling_body", body1_name);
-            XMLDocument::addConnector(aNode, "Connector_PhysicalFrame_",
-                    "socket_surface_body", body2_name);
         }
     }
 
